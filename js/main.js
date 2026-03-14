@@ -1,6 +1,6 @@
 /**
  * Syndicate Systems — Main JavaScript
- * IntersectionObserver reveals, header scroll state, reduced motion
+ * IntersectionObserver reveals, header scroll state, phase detection, image fallbacks
  */
 
 (function () {
@@ -28,8 +28,8 @@
         });
       },
       {
-        threshold: 0.12,
-        rootMargin: '0px 0px -40px 0px'
+        threshold: 0.08,
+        rootMargin: '0px 0px -60px 0px'
       }
     );
 
@@ -43,7 +43,7 @@
     var outcomesSection = document.getElementById('outcomes');
     if (!header) return;
 
-    var scrollThreshold = 60;
+    var scrollThreshold = 80;
 
     function updateHeader() {
       if (window.scrollY > scrollThreshold) {
@@ -85,10 +85,19 @@
     });
   }
 
+  function initImageFallbacks() {
+    document.querySelectorAll('.image-panel__img, .image-band__img').forEach(function (img) {
+      img.addEventListener('error', function () {
+        this.parentElement.classList.add('has-error');
+      });
+    });
+  }
+
   function init() {
     initReveals();
     initHeaderScroll();
     initSmoothAnchor();
+    initImageFallbacks();
   }
 
   if (document.readyState === 'loading') {

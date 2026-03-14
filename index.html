@@ -13,7 +13,7 @@
 <body>
   <header class="site-header" id="header">
     <div class="site-header__inner">
-      <a href="#" class="site-header__logo">Syndicate Systems</a>
+      <a href="#hero" class="site-header__logo">Syndicate Systems</a>
       <nav class="site-header__nav">
         <a href="#philosophy" class="site-header__link">Philosophy</a>
         <a href="#inspection" class="site-header__link">Inspection</a>
@@ -26,32 +26,51 @@
 
   <main>
     <section class="hero" id="hero" data-phase="1">
-      <div class="hero__bg" style="background-image: url('assets/nationaltheatre_1024x1024-94148593-92de-4d1a-a4d9-409c9dc924a9.png');"></div>
-      <div class="hero__overlay"></div>
-      <div class="hero__grid"></div>
-      <div class="hero__content">
-        <h1 class="hero__title reveal">Syndicate Systems</h1>
-        <p class="hero__tagline reveal">Architecture Before Optimization</p>
-        <p class="hero__support reveal">Independent systems architecture advisory for organizations that need structural clarity before action.</p>
-      </div>
-    </section>
-
-    <section class="section section--philosophy" id="philosophy" data-phase="1">
-      <div class="section__grid-overlay"></div>
-      <div class="section__inner">
-        <div class="content-block content-block--centered">
-          <h2 class="section__title reveal">Structural clarity enables elegant systems.</h2>
-          <div class="section__text reveal">
-            <p>Most organizations chase sophistication through tools, trends, and surface-level optimization. Elegance only emerges when the underlying architecture is sound.</p>
-            <p>We help organizations see the structure first. The rest follows.</p>
+      <div class="hero__frame">
+        <div class="hero__grid"></div>
+        <div class="hero__upper">
+          <div class="hero__content">
+            <h1 class="hero__title reveal">Syndicate Systems</h1>
+            <p class="hero__tagline reveal">Architecture Before Optimization</p>
+            <p class="hero__support reveal">Independent systems architecture advisory for organizations that need structural clarity before action.</p>
+          </div>
+        </div>
+        <div class="hero__divider"></div>
+        <div class="hero__lower">
+          <div class="hero__image-recess">
+            <div class="hero__image-inner">
+              <img src="assets/nationaltheatre_1024x1024-94148593-92de-4d1a-a4d9-409c9dc924a9.png" alt="" class="hero__img" loading="eager">
+            </div>
           </div>
         </div>
       </div>
     </section>
 
+    <section class="section section--philosophy" id="philosophy" data-phase="1">
+      <div class="section__grid-overlay"></div>
+      <div class="section__frame">
+        <div class="section__inner section__inner--contained">
+          <div class="content-block content-block--centered content-block--narrow">
+            <h2 class="section__title reveal">Structural clarity enables elegant systems.</h2>
+            <div class="section__text reveal">
+              <p>Most organizations chase sophistication through tools, trends, and surface-level optimization. Elegance only emerges when the underlying architecture is sound.</p>
+              <p>We help organizations see the structure first. The rest follows.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="image-band image-band--structure" data-phase="1">
+      <div class="image-band__recess">
+        <img src="assets/the-brutal-wonders-of-the-architecture-world-gq-style-fall-2018-12-f224cf52-85cf-42ce-980f-343d7ee8fb5c.png" alt="" class="image-band__img" loading="lazy">
+      </div>
+    </section>
+
     <section class="section section--inspection" id="inspection" data-phase="2">
-      <div class="section__inner section__inner--split">
-        <div class="content-block content-block--text">
+      <div class="section__top-line"></div>
+      <div class="section__inner section__inner--split section__inner--offset">
+        <div class="content-block content-block--text content-block--pull-left">
           <h2 class="section__title reveal">We examine what exists.</h2>
           <div class="section__text reveal">
             <p>Before design, there is inspection. We map infrastructure, trace dependencies, and identify where systems are weak, unclear, or misaligned.</p>
@@ -64,22 +83,33 @@
             </ul>
           </div>
         </div>
-        <div class="content-block content-block--image">
-          <div class="image-panel image-panel--inset reveal">
-            <img src="assets/corner-e4b86ea0-5e85-42c7-8cbc-b143e841941f.png" alt="Brutalist architectural detail — diamond tessellation pattern" class="image-panel__img">
+        <div class="content-block content-block--image content-block--image-large">
+          <div class="image-panel image-panel--major reveal">
+            <div class="image-panel__wrap">
+              <img src="assets/corner-e4b86ea0-5e85-42c7-8cbc-b143e841941f.png" alt="Brutalist architectural detail — diamond tessellation" class="image-panel__img" loading="lazy">
+            </div>
           </div>
         </div>
       </div>
     </section>
 
+    <section class="image-band image-band--order" data-phase="2">
+      <div class="image-band__recess image-band__recess--inset">
+        <img src="assets/Welbeck_Street_Car_Park2-60e4e877-73c4-43e2-9ab9-ff42ef1f5420.png" alt="" class="image-band__img" loading="lazy">
+      </div>
+    </section>
+
     <section class="section section--architecture" id="architecture" data-phase="2">
-      <div class="section__inner section__inner--split section__inner--reversed">
-        <div class="content-block content-block--image">
-          <div class="image-panel image-panel--inset reveal">
-            <img src="assets/Brutalist_Architecture_Pattern_in_Monochrome-1a85aef3-8b4a-43a3-9e1e-42936a6df4f3.png" alt="Brutalist modular facade pattern" class="image-panel__img">
+      <div class="section__top-line section__top-line--light"></div>
+      <div class="section__inner section__inner--split section__inner--reversed section__inner--wide">
+        <div class="content-block content-block--image content-block--image-large content-block--image-offset">
+          <div class="image-panel image-panel--major reveal">
+            <div class="image-panel__wrap">
+              <img src="assets/Brutalist_Architecture_Pattern_in_Monochrome-1a85aef3-8b4a-43a3-9e1e-42936a6df4f3.png" alt="Brutalist modular facade pattern" class="image-panel__img" loading="lazy">
+            </div>
           </div>
         </div>
-        <div class="content-block content-block--text">
+        <div class="content-block content-block--text content-block--pull-right">
           <h2 class="section__title reveal">We design for resilience.</h2>
           <div class="section__text reveal">
             <p>With structural reality established, we define architectures that compress risk and support operational clarity.</p>
@@ -96,7 +126,7 @@
     </section>
 
     <section class="section section--outcomes" id="outcomes" data-phase="3">
-      <div class="section__inner">
+      <div class="section__inner section__inner--contained section__inner--narrow">
         <div class="content-block content-block--centered content-block--wide">
           <h2 class="section__title reveal">Order precedes optimization.</h2>
           <div class="section__text reveal">
@@ -110,7 +140,7 @@
     </section>
 
     <section class="section section--engagement" id="engagement" data-phase="3">
-      <div class="section__inner">
+      <div class="section__inner section__inner--contained section__inner--minimal">
         <div class="content-block content-block--centered content-block--narrow">
           <h2 class="section__title reveal">Discuss your architecture.</h2>
           <div class="section__text reveal">
@@ -124,6 +154,7 @@
   </main>
 
   <footer class="footer">
+    <div class="footer__line"></div>
     <div class="footer__inner">
       <span class="footer__text">Syndicate Systems LLC</span>
       <span class="footer__text">Independent systems architecture advisory</span>
