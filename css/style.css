@@ -161,130 +161,192 @@ body.in-phase-3 .site-header__link:focus {
 }
 
 /* --------------------------------------------------------------------------
-   Hero — Architectural frame composition
+   Hero — Architectural plate composition
    -------------------------------------------------------------------------- */
 .hero {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
+  min-height: 100svh;
+  padding: 6rem var(--content-padding) 3rem;
   position: relative;
   background-color: var(--color-charcoal);
-  overflow: hidden;
+  overflow: visible;
 }
 
-.hero__frame {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-.hero__upper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: var(--space-8xl) var(--content-padding) var(--space-5xl);
-}
-
-.hero__content {
-  max-width: 960px;
-}
-
-.hero__title {
-  font-size: clamp(2.75rem, 7vw, var(--text-7xl));
-  font-weight: 500;
-  letter-spacing: -0.025em;
-  line-height: 0.98;
-  color: var(--color-white);
-  margin-bottom: var(--space-2xl);
-}
-
-.hero__tagline {
-  font-size: clamp(1rem, 2vw, var(--text-xl));
-  font-weight: 400;
-  letter-spacing: 0.03em;
-  color: rgba(255, 255, 255, 0.75);
-  max-width: 480px;
-  margin-bottom: var(--space-4xl);
-}
-
-.hero__support {
-  font-size: var(--text-sm);
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.45);
-  max-width: 400px;
-  line-height: 1.6;
-}
-
-.hero__divider {
-  height: 1px;
-  margin: 0 var(--content-padding);
-  background: linear-gradient(
-    to right,
-    transparent 5%,
-    rgba(255, 255, 255, 0.15) 25%,
-    rgba(255, 255, 255, 0.15) 75%,
-    transparent 95%
-  );
-}
-
-.hero__lower {
-  padding: 0 var(--content-padding) var(--content-padding);
-}
-
-.hero__image-recess {
-  position: relative;
-  height: 42vh;
-  min-height: 320px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  overflow: hidden;
-  background-color: #151515;
-}
-
-.hero__image-inner {
-  position: absolute;
-  inset: 0;
-}
-
-.hero__image-inner img,
-.hero__img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center 30%;
-}
-
-.hero__bg {
-  position: absolute;
-  inset: 0;
-  background-color: var(--color-charcoal);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-.hero__overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(28, 28, 28, 0.4) 0%,
-    rgba(28, 28, 28, 0.7) 45%,
-    rgba(28, 28, 28, 0.95) 100%
-  );
-}
-
-.hero__grid {
+.hero::before {
+  content: '';
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
   background-size: 64px 64px;
   pointer-events: none;
+}
+
+.hero-shell {
+  width: 100%;
+  max-width: min(92vw, 1560px);
+  margin: 0 auto;
+  min-height: 420px;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-rows: minmax(240px, 1fr) auto;
+  gap: 2rem;
+  position: relative;
+  z-index: 1;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 2.5rem;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.hero-shell::after {
+  content: '';
+  position: absolute;
+  top: 2.5rem;
+  bottom: 2.5rem;
+  left: 68%;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.hero-copy {
+  grid-column: 1 / 2;
+  grid-row: 1 / 2;
+  align-self: center;
+  justify-self: start;
+  max-width: 760px;
+  padding: 1rem 1.5rem 1rem 0;
+}
+
+.hero-eyebrow {
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+  margin-bottom: 2.5rem;
+}
+
+.hero-brand {
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 1.5rem;
+}
+
+.hero-statement {
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 500;
+  margin: 0 0 1.5rem;
+  color: var(--color-white);
+}
+
+.hero-statement .hero-statement__line {
+  display: block;
+}
+
+.hero-tagline {
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0 0 1.5rem;
+}
+
+.hero-rule {
+  width: 80px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 0 0 1.5rem;
+}
+
+.hero-support {
+  max-width: 36rem;
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.58);
+  margin: 0;
+}
+
+.hero-band {
+  grid-column: 1 / 3;
+  grid-row: 2 / 3;
+  height: 200px;
+  overflow: hidden;
+  position: relative;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 2rem;
+}
+
+/* Abstract structural element — replaces photo */
+.abstract-structural {
+  position: absolute;
+  inset: 0;
+  background-color: #111;
+}
+
+.abstract-structural__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.abstract-structural__blocks {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 1px;
+  padding: 1.5rem;
+}
+
+.abstract-structural__block {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.abstract-structural__block:nth-child(3),
+.abstract-structural__block:nth-child(7),
+.abstract-structural__block:nth-child(14),
+.abstract-structural__block:nth-child(22),
+.abstract-structural__block:nth-child(28) {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+@media (max-width: 900px) {
+  .hero {
+    min-height: auto;
+    padding: 6rem 0 2rem;
+  }
+
+  .hero-shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    min-height: auto;
+    padding: 1.25rem;
+  }
+
+  .hero-copy {
+    grid-column: 1;
+    grid-row: 1;
+    padding: 1rem 0 0;
+  }
+
+  .hero-band {
+    grid-column: 1;
+    grid-row: 2;
+    height: 220px;
+    margin-top: 2rem;
+  }
+
+  .hero-shell::after {
+    display: none;
+  }
 }
 
 /* --------------------------------------------------------------------------
