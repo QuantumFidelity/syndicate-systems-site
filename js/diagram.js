@@ -113,7 +113,7 @@
   function initDiagram() {
     var container = document.getElementById('systemDiagram');
     if (!container) return;
-    if (container.querySelector('canvas')) return;
+    if (container.querySelector('canvas') || container.getAttribute('data-globe-active')) return;
 
     var rect = container.getBoundingClientRect();
     if (rect.width > 0 && rect.height > 0) {
