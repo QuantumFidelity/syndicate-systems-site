@@ -9,6 +9,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
 </head>
 <body>
   <header class="site-header" id="header">
@@ -17,8 +25,7 @@
       <nav class="site-header__nav">
         <a href="#philosophy" class="site-header__link">Philosophy</a>
         <a href="#process" class="site-header__link">Process</a>
-        <a href="#inspection" class="site-header__link">Inspection</a>
-        <a href="#architecture" class="site-header__link">Architecture</a>
+        <a href="#approach" class="site-header__link">Approach</a>
         <a href="#outcomes" class="site-header__link">Outcomes</a>
         <a href="#engagement" class="site-header__link">Contact</a>
       </nav>
@@ -35,10 +42,12 @@
           <p class="hero-support">
             We help organizations see clearly, decide correctly, and structure their technology systems—without vendor pressure or implementation entanglement.
           </p>
-          <p class="hero-boundary">We advise. We don't implement.</p>
+          <div class="accent-block accent-block--hero reveal">
+            <p class="accent-block__text">We advise. We don't implement.</p>
+          </div>
         </div>
-        <div class="hero-artifact" aria-hidden="true">
-          <img src="assets/hero-brutalist.png" alt="Brutalist architecture — metaphor for structural clarity in software and infrastructure systems" class="hero-artifact__img" loading="eager">
+        <div class="hero-artifact hero-artifact--diagram" aria-hidden="true">
+          <div class="system-diagram" id="systemDiagram" role="img" aria-label="Interactive 3D globe with network: structure, clarity, independence. Nodes protrude from the globe. Hover to reveal connections. Drag to rotate."></div>
         </div>
       </div>
     </section>
@@ -64,11 +73,25 @@
       <div class="section__grid-overlay"></div>
       <div class="section__frame">
         <div class="section__inner section__inner--contained">
-          <div class="content-block content-block--centered content-block--narrow">
+          <div class="content-block content-block--centered content-block--wide">
             <h2 class="section__title reveal">Structural clarity enables elegant systems.</h2>
             <div class="section__text reveal">
               <p>Most organizations chase sophistication through tools, trends, and surface-level optimization. Elegance in technology systems only emerges when the underlying architecture is sound.</p>
               <p>We help organizations see the structure of their software, infrastructure, and platforms before they act. Decision compression. The rest follows.</p>
+            </div>
+            <div class="pillars pillars--philosophy reveal">
+              <div class="pillar">
+                <span class="pillar__label">Structure</span>
+                <span class="pillar__line">Architecture before optimization.</span>
+              </div>
+              <div class="pillar">
+                <span class="pillar__label">Clarity</span>
+                <span class="pillar__line">See what exists before you act.</span>
+              </div>
+              <div class="pillar">
+                <span class="pillar__label">Independence</span>
+                <span class="pillar__line">Advisory only. No implementation entanglement.</span>
+              </div>
             </div>
           </div>
         </div>
@@ -80,87 +103,84 @@
       <div class="section__inner section__inner--contained section__inner--wide">
         <div class="content-block content-block--centered content-block--wide">
           <h2 class="section__title reveal">How we work.</h2>
-          <ol class="process-list reveal">
-            <li>
-              <span class="process-list__step">Qualification</span>
-              <span class="process-list__desc">Determine fit, confirm expectations align with advisory-only scope.</span>
-            </li>
-            <li>
-              <span class="process-list__step">Paid Inspection</span>
-              <span class="process-list__desc">Assess current state, map dependencies, identify risks and constraints.</span>
-            </li>
-            <li>
-              <span class="process-list__step">Advisory Artifact</span>
-              <span class="process-list__desc">Structured recommendations, prioritization, and architectural direction.</span>
-            </li>
-            <li>
-              <span class="process-list__step">Optional Roadmap & Retainer</span>
-              <span class="process-list__desc">Execution sequencing guidance and ongoing stewardship—advisory only.</span>
-            </li>
-          </ol>
+          <div class="process-stepper reveal">
+            <div class="process-stepper__item">
+              <span class="process-stepper__num" aria-hidden="true">1</span>
+              <span class="process-stepper__label">Qualification</span>
+              <span class="process-stepper__desc">Determine fit, confirm expectations align with advisory-only scope.</span>
+            </div>
+            <div class="process-stepper__connector" aria-hidden="true"></div>
+            <div class="process-stepper__item">
+              <span class="process-stepper__num" aria-hidden="true">2</span>
+              <span class="process-stepper__label">Inspection</span>
+              <span class="process-stepper__desc">Assess current state, map dependencies, identify risks and constraints.</span>
+            </div>
+            <div class="process-stepper__connector" aria-hidden="true"></div>
+            <div class="process-stepper__item">
+              <span class="process-stepper__num" aria-hidden="true">3</span>
+              <span class="process-stepper__label">Advisory</span>
+              <span class="process-stepper__desc">Structured recommendations, prioritization, and architectural direction.</span>
+            </div>
+            <div class="process-stepper__connector" aria-hidden="true"></div>
+            <div class="process-stepper__item">
+              <span class="process-stepper__num" aria-hidden="true">4</span>
+              <span class="process-stepper__label">Optional</span>
+              <span class="process-stepper__desc">Execution sequencing guidance and ongoing stewardship—advisory only.</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="image-band image-band--structure" data-phase="1">
-      <div class="image-band__recess">
-        <img src="assets/the-brutal-wonders-of-the-architecture-world-gq-style-fall-2018-12.avif" alt="Structural rhythm — metaphor for system modularity in technology infrastructure" class="image-band__img" loading="lazy">
-      </div>
-    </section>
-
-    <section class="section section--inspection" id="inspection" data-phase="2">
+    <section class="section section--deliver" id="deliver" data-phase="1">
       <div class="section__top-line"></div>
-      <div class="section__inner section__inner--split section__inner--offset">
-        <div class="content-block content-block--text content-block--pull-left">
-          <h2 class="section__title reveal">We examine what exists.</h2>
+      <div class="section__inner section__inner--contained section__inner--narrow">
+        <div class="content-block content-block--centered content-block--wide">
+          <h2 class="section__title reveal">What we deliver.</h2>
           <div class="section__text reveal">
-            <p>Before design, there is inspection. We map infrastructure, trace dependencies, and identify where systems are weak, unclear, or misaligned.</p>
-            <p>Our work begins with understanding the current technical state. No assumptions. No shortcuts.</p>
-            <ul class="support-list reveal">
-              <li>Dependency mapping</li>
-              <li>Failure mode analysis</li>
-              <li>Structural audit</li>
-              <li>Constraint identification</li>
-            </ul>
-          </div>
-        </div>
-        <div class="content-block content-block--image content-block--image-large">
-          <div class="image-panel image-panel--major reveal">
-            <div class="image-panel__wrap">
-              <img src="assets/corner.webp" alt="Modular structure — metaphor for dependency and boundary clarity in software systems" class="image-panel__img" loading="lazy">
-            </div>
+            <p>The advisory artifact compresses months of uncertainty into a clear decision structure. It helps leadership answer: what matters, what does not, what must change first, and where outside vendors fit.</p>
+            <p>Clarity. Prioritization. Tradeoff analysis. Implementation sequencing—when requested. Not a data dump. A compression engine for decisions.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="image-band image-band--order" data-phase="2">
-      <div class="image-band__recess image-band__recess--inset">
-        <img src="assets/Welbeck_Street_Car_Park2.jpg" alt="Load-bearing geometry — metaphor for structural integrity in technology system design" class="image-band__img" loading="lazy">
-      </div>
-    </section>
+    <div class="structural-divider" aria-hidden="true"></div>
 
-    <section class="section section--architecture" id="architecture" data-phase="2">
-      <div class="section__top-line section__top-line--light"></div>
-      <div class="section__inner section__inner--split section__inner--reversed section__inner--wide">
-        <div class="content-block content-block--image content-block--image-large content-block--image-offset">
-          <div class="image-panel image-panel--major reveal">
-            <div class="image-panel__wrap">
-              <img src="assets/Brutalist%20Architecture%20Pattern%20in%20Monochrome.jpg" alt="Repetitive structural pattern — metaphor for system boundary definition in software architecture" class="image-panel__img" loading="lazy">
+    <section class="section section--approach" id="approach" data-phase="2">
+      <div class="section__top-line"></div>
+      <div class="approach__phase">
+        <div class="section__inner section__inner--contained section__inner--narrow">
+          <div class="content-block content-block--centered content-block--wide">
+            <h2 class="section__title reveal">We examine what exists.</h2>
+            <div class="section__text reveal">
+              <p>Before design, there is inspection. We map infrastructure, trace dependencies, and identify where systems are weak, unclear, or misaligned.</p>
+              <p>Our work begins with understanding the current technical state. No assumptions. No shortcuts.</p>
+              <ul class="support-list reveal">
+                <li>Dependency mapping</li>
+                <li>Failure mode analysis</li>
+                <li>Structural audit</li>
+                <li>Constraint identification</li>
+              </ul>
             </div>
           </div>
         </div>
-        <div class="content-block content-block--text content-block--pull-right">
-          <h2 class="section__title reveal">We design for resilience.</h2>
-          <div class="section__text reveal">
-            <p>With the structural reality of your systems established, we define architectures that compress risk and support operational clarity.</p>
-            <p>We do not implement. We advise. We provide the architectural judgment that enables sound implementation.</p>
-            <ul class="support-list reveal">
-              <li>System boundary definition</li>
-              <li>Failure isolation design</li>
-              <li>Dependency reduction</li>
-              <li>Operational clarity</li>
-            </ul>
+      </div>
+      <div class="structural-divider structural-divider--inset" aria-hidden="true"></div>
+      <div class="approach__phase approach__phase--reversed">
+        <div class="section__inner section__inner--contained section__inner--narrow">
+          <div class="content-block content-block--centered content-block--wide">
+            <h2 class="section__title reveal">We design for resilience.</h2>
+            <div class="section__text reveal">
+              <p>With the structural reality of your systems established, we define architectures that compress risk and support operational clarity.</p>
+              <p>We do not implement. We advise. We provide the architectural judgment that enables sound implementation.</p>
+              <ul class="support-list reveal">
+                <li>System boundary definition</li>
+                <li>Failure isolation design</li>
+                <li>Dependency reduction</li>
+                <li>Operational clarity</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -215,6 +235,9 @@
 
   <a href="#hero" class="back-to-top" id="backToTop" aria-label="Back to top">↑</a>
 
+  <script type="module" src="js/globe.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="js/diagram.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

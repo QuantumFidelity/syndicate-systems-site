@@ -197,6 +197,7 @@ a {
   border: 1px solid var(--line-subtle);
   padding: 3rem;
   background: var(--bg-section);
+  overflow: visible;
 }
 
 @media (min-width: 960px) {
@@ -271,7 +272,29 @@ a {
   margin: 1.25rem 0 0;
 }
 
-/* Structural artifact — hero image */
+/* Accent block — boundary statement as structural element */
+.accent-block {
+  display: inline-block;
+  margin-top: 1.5rem;
+  padding: var(--space-md) var(--space-lg);
+  border: 2px solid var(--accent);
+  background: transparent;
+}
+
+.accent-block--hero {
+  margin-top: 1.5rem;
+}
+
+.accent-block__text {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0;
+}
+
+/* Structural artifact — typographic pillars */
 .hero-artifact {
   grid-column: 2;
   grid-row: 1;
@@ -279,9 +302,141 @@ a {
   justify-self: end;
   width: 100%;
   max-width: 320px;
-  aspect-ratio: 1;
+}
+
+.hero-artifact--pillars {
   border: 1px solid var(--line-subtle);
+}
+
+/* System diagram — interactive graph */
+@media (min-width: 901px) {
+  .hero-shell {
+    grid-template-columns: 1fr 1.35fr;
+  }
+}
+
+.hero-artifact--diagram {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  min-height: 240px;
+  margin: 0;
+  align-self: stretch;
+  justify-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.system-diagram {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  min-height: 280px;
+  aspect-ratio: 1.2 / 1;
   overflow: hidden;
+}
+
+.system-diagram__svg,
+.system-diagram canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.system-diagram canvas {
+  cursor: grab;
+}
+
+.system-diagram canvas:active {
+  cursor: grabbing;
+}
+
+.system-diagram__link {
+  stroke: var(--text-primary);
+  stroke-opacity: 0.15;
+  stroke-width: 1;
+  transition: stroke-opacity 0.35s var(--transition-easing),
+              stroke-width 0.25s var(--transition-easing);
+}
+
+.system-diagram__link.is-dimmed {
+  stroke-opacity: 0.04;
+}
+
+.system-diagram__node {
+  fill: var(--text-primary);
+  fill-opacity: 0.4;
+  stroke: var(--line-subtle);
+  stroke-width: 1;
+  cursor: pointer;
+  transition: fill 0.25s var(--transition-easing),
+              fill-opacity 0.25s var(--transition-easing),
+              stroke 0.25s var(--transition-easing),
+              r 0.2s var(--transition-easing);
+}
+
+.system-diagram__node:hover,
+.system-diagram__node:focus {
+  outline: none;
+}
+
+.system-diagram__node.is-dimmed {
+  fill-opacity: 0.08;
+}
+
+.system-diagram__node.is-active {
+  fill: var(--accent);
+  fill-opacity: 0.9;
+  stroke: var(--accent);
+}
+
+.system-diagram__node:not(.is-dimmed):not(.is-active) {
+  fill-opacity: 0.5;
+}
+
+.system-diagram__link:not(.is-dimmed) {
+  stroke-opacity: 0.35;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .system-diagram__link,
+  .system-diagram__node {
+    transition: none;
+  }
+
+  .system-diagram__link--pulse {
+    animation: none;
+  }
+}
+
+.hero-pillars {
+  display: flex;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+}
+
+.hero-pillar {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 100px;
+  padding: var(--space-md) var(--space-sm);
+  border: 1px solid var(--line-subtle);
+  background: var(--bg-subtle);
+}
+
+.hero-pillar__label {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  text-align: center;
+  line-height: 1.3;
 }
 
 .hero-artifact__img {
@@ -319,7 +474,36 @@ a {
     grid-row: 2;
     align-self: center;
     justify-self: center;
-    max-width: 240px;
+    max-width: 280px;
+  }
+
+  .hero-artifact--diagram {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: -4%;
+  }
+
+  .hero-artifact--diagram {
+    min-height: 280px;
+  }
+
+  .hero-artifact--diagram .system-diagram {
+    min-height: 260px;
+    max-height: 340px;
+  }
+
+  .hero-pillars {
+    padding: var(--space-md);
+    gap: var(--space-sm);
+  }
+
+  .hero-pillar {
+    min-height: 72px;
+    padding: var(--space-sm) var(--space-xs);
+  }
+
+  .hero-pillar__label {
+    font-size: var(--text-xs);
   }
 }
 
@@ -364,6 +548,25 @@ a {
     rgba(0, 0, 0, 0.15) 100%
   );
   pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   Structural divider — Replaces image bands
+   -------------------------------------------------------------------------- */
+.structural-divider {
+  height: 1px;
+  margin: 0;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--line-subtle) 15%,
+    var(--line-subtle) 85%,
+    transparent
+  );
+}
+
+.structural-divider--inset {
+  margin: 0 var(--content-padding);
 }
 
 /* --------------------------------------------------------------------------
@@ -538,6 +741,50 @@ a {
   opacity: 1;
 }
 
+/* Pillars — typographic blocks (Structure, Clarity, Independence) */
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-lg);
+  margin-top: var(--space-4xl);
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.pillar {
+  padding: var(--space-xl) var(--space-lg);
+  border: 1px solid var(--line-subtle);
+  background: var(--bg-main);
+  text-align: left;
+}
+
+.pillar__label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: var(--space-sm);
+  padding-bottom: var(--space-sm);
+  border-bottom: 2px solid var(--accent);
+}
+
+.pillar__line {
+  display: block;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 700px) {
+  .pillars {
+    grid-template-columns: 1fr;
+    margin-top: var(--space-3xl);
+  }
+}
+
 /* --------------------------------------------------------------------------
    Problem Recognition — Mirror client situations
    -------------------------------------------------------------------------- */
@@ -603,43 +850,233 @@ a {
   margin-bottom: var(--space-4xl);
 }
 
-.process-list {
-  list-style: none;
-  counter-reset: process-step;
-  margin: 0;
-  padding: 0;
+/* Process stepper — horizontal chain 1—2—3—4 */
+.process-stepper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0;
+  margin: 0 auto;
+  max-width: 100%;
 }
 
-.process-list li {
-  position: relative;
-  counter-increment: process-step;
-  padding-left: 4rem;
-  margin-bottom: var(--space-2xl);
+.process-stepper__item {
+  flex: 1 1 180px;
+  min-width: 140px;
+  max-width: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-lg) var(--space-md);
 }
 
-.process-list li::before {
-  content: counter(process-step);
-  position: absolute;
-  left: 0;
-  top: 0;
+.process-stepper__num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
   font-size: var(--text-sm);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--accent);
-  letter-spacing: 0.05em;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  margin-bottom: var(--space-md);
 }
 
-.process-list__step {
+.process-stepper__label {
   display: block;
   font-weight: 500;
+  font-size: var(--text-sm);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--text-primary);
   margin-bottom: var(--space-xs);
 }
 
-.process-list__desc {
+.process-stepper__desc {
   display: block;
-  font-size: var(--text-base);
-  line-height: 1.6;
+  font-size: var(--text-xs);
+  line-height: 1.5;
   color: var(--text-secondary);
+}
+
+.process-stepper__connector {
+  flex: 1 1 24px;
+  min-width: 24px;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+}
+
+.process-stepper__connector::before {
+  content: '';
+  width: 100%;
+  min-width: 20px;
+  max-width: 80px;
+  height: 1px;
+  background: var(--line-subtle);
+  margin: 0 auto;
+}
+
+@media (max-width: 900px) {
+  .process-stepper {
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .process-stepper__connector {
+    width: 1px;
+    min-width: 1px;
+    min-height: 24px;
+    flex: 0 0 24px;
+  }
+
+  .process-stepper__connector::before {
+    width: 1px;
+    min-width: 1px;
+    max-width: none;
+    height: 100%;
+    min-height: 24px;
+  }
+
+  .process-stepper__item {
+    max-width: 280px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Deliver — What we deliver
+   -------------------------------------------------------------------------- */
+.section--deliver {
+  background-color: var(--bg-main);
+  padding: 0;
+}
+
+.section--deliver .section__inner {
+  padding: var(--space-7xl) var(--content-padding);
+}
+
+.section--deliver .section__title {
+  color: var(--text-primary);
+  margin-bottom: var(--space-3xl);
+}
+
+.section--deliver .section__text p {
+  color: var(--text-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   Approach — Merged inspection + architecture
+   -------------------------------------------------------------------------- */
+.section--approach {
+  padding: 0;
+}
+
+.section--approach .section__top-line {
+  margin-bottom: 0;
+}
+
+.section--approach .approach__phase {
+  border-top: 1px solid var(--line-subtle);
+}
+
+.section--approach .approach__phase:first-child {
+  border-top: none;
+}
+
+.section--approach .approach__phase .section__inner {
+  padding: var(--space-8xl) var(--content-padding);
+}
+
+.section--approach .approach__phase .section__inner--split {
+  display: grid;
+  gap: var(--space-7xl);
+  align-items: start;
+  padding: var(--space-8xl) var(--content-padding);
+}
+
+@media (min-width: 960px) {
+  .section--approach .approach__phase:not(.approach__phase--reversed) .section__inner--split {
+    grid-template-columns: 1fr 1.15fr;
+    gap: var(--space-8xl);
+    align-items: center;
+  }
+
+  .section--approach .approach__phase:not(.approach__phase--reversed) .content-block--image {
+    padding-left: var(--space-4xl);
+  }
+
+  .section--approach .approach__phase--reversed .section__inner--split {
+    grid-template-columns: 1.2fr 1fr;
+    gap: var(--space-8xl);
+    align-items: center;
+  }
+
+  .section--approach .approach__phase--reversed .content-block--image {
+    order: 1;
+    padding-right: var(--space-4xl);
+  }
+
+  .section--approach .approach__phase--reversed .content-block--text {
+    order: 2;
+  }
+}
+
+.section--approach .approach__phase {
+  background-color: var(--bg-main);
+}
+
+.section--approach .approach__phase--reversed {
+  background-color: var(--bg-subtle);
+}
+
+.section--approach .section__title {
+  color: var(--text-primary);
+  margin-bottom: var(--space-3xl);
+}
+
+.section--approach .section__text p {
+  color: var(--text-secondary);
+}
+
+.section--approach .support-list {
+  margin-top: var(--space-3xl);
+}
+
+.section--approach .support-list li {
+  color: var(--text-secondary);
+}
+
+.section--approach .support-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.65em;
+  width: 10px;
+  height: 1px;
+  background: var(--line-subtle);
+}
+
+.section--approach .image-panel--major {
+  aspect-ratio: 5/4;
+  border: 1px solid var(--line-subtle);
+  overflow: hidden;
+}
+
+.section--approach .approach__phase--reversed .image-panel--major {
+  aspect-ratio: 4/3;
+}
+
+.section--approach .image-panel--major img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 /* --------------------------------------------------------------------------
@@ -675,7 +1112,141 @@ a {
 }
 
 /* --------------------------------------------------------------------------
-   Inspection — Phase 2: Large image, offset composition
+   Deliver — What we deliver
+   -------------------------------------------------------------------------- */
+.section--deliver {
+  background-color: var(--bg-main);
+  padding: 0;
+}
+
+.section--deliver .section__inner {
+  padding: var(--space-7xl) var(--content-padding);
+}
+
+.section--deliver .section__title {
+  color: var(--text-primary);
+  margin-bottom: var(--space-3xl);
+}
+
+.section--deliver .section__text p {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-xl);
+}
+
+.section--deliver .section__text p:last-child {
+  margin-bottom: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Approach — Merged inspection + architecture
+   -------------------------------------------------------------------------- */
+.section--approach {
+  padding: 0;
+}
+
+.section--approach .section__top-line {
+  margin-bottom: 0;
+}
+
+.section--approach .approach__phase {
+  border-top: 1px solid var(--line-subtle);
+}
+
+.section--approach .approach__phase:first-child {
+  border-top: none;
+  background-color: var(--bg-main);
+}
+
+.section--approach .approach__phase--reversed {
+  background-color: var(--bg-subtle);
+}
+
+.section--approach .section__inner--split {
+  display: grid;
+  gap: var(--space-7xl);
+  align-items: start;
+  padding: var(--space-8xl) var(--content-padding);
+}
+
+.section--approach .approach__phase:first-child .section__inner--split {
+  grid-template-columns: 1fr 1.15fr;
+}
+
+@media (min-width: 960px) {
+  .section--approach .approach__phase:first-child .section__inner--split {
+    grid-template-columns: 1fr 1.15fr;
+    align-items: center;
+  }
+
+  .section--approach .approach__phase:first-child .content-block--image {
+    padding-left: var(--space-4xl);
+  }
+
+  .section--approach .approach__phase--reversed .section__inner--split {
+    grid-template-columns: 1.2fr 1fr;
+    align-items: center;
+  }
+
+  .section--approach .approach__phase--reversed .content-block--image {
+    order: 1;
+    padding-right: var(--space-4xl);
+  }
+
+  .section--approach .approach__phase--reversed .content-block--text {
+    order: 2;
+  }
+}
+
+.section--approach .section__title {
+  color: var(--text-primary);
+  margin-bottom: var(--space-3xl);
+}
+
+.section--approach .section__text p {
+  color: var(--text-secondary);
+}
+
+.section--approach .support-list {
+  margin-top: var(--space-3xl);
+}
+
+.section--approach .support-list li {
+  color: var(--text-secondary);
+}
+
+.section--approach .support-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.65em;
+  width: 10px;
+  height: 1px;
+  background: var(--line-subtle);
+}
+
+.section--approach .image-panel--major {
+  aspect-ratio: 5/4;
+  border: 1px solid var(--line-subtle);
+  overflow: hidden;
+}
+
+.section--approach .approach__phase--reversed .image-panel--major {
+  aspect-ratio: 4/3;
+}
+
+.section--approach .image-panel--major img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.section--approach .image-band {
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Inspection — Phase 2: Large image, offset composition (legacy, kept for reference)
    -------------------------------------------------------------------------- */
 .section--inspection {
   background-color: var(--bg-main);
@@ -1042,8 +1613,7 @@ a {
     padding: var(--space-6xl) var(--content-padding);
   }
 
-  .section--inspection .content-block--image,
-  .section--architecture .content-block--image {
+  .section--approach .content-block--image {
     padding: 0;
   }
 
