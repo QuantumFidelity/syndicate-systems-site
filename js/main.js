@@ -57,6 +57,11 @@
         var inPhase3 = rect.top < window.innerHeight * 0.5;
         document.body.classList.toggle('in-phase-3', inPhase3);
       }
+
+      var backToTop = document.getElementById('backToTop');
+      if (backToTop) {
+        backToTop.classList.toggle('is-visible', window.scrollY > 400);
+      }
     }
 
     window.addEventListener('scroll', function () {
