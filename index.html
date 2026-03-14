@@ -7,7 +7,7 @@
   <title>Syndicate Systems — Architecture Before Optimization</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -16,6 +16,7 @@
       <a href="#hero" class="site-header__logo">Syndicate Systems</a>
       <nav class="site-header__nav">
         <a href="#philosophy" class="site-header__link">Philosophy</a>
+        <a href="#process" class="site-header__link">Process</a>
         <a href="#inspection" class="site-header__link">Inspection</a>
         <a href="#architecture" class="site-header__link">Architecture</a>
         <a href="#outcomes" class="site-header__link">Outcomes</a>
@@ -28,27 +29,33 @@
     <section class="hero" id="hero" data-phase="1">
       <div class="hero-shell">
         <div class="hero-copy">
-          <p class="hero-eyebrow">Systems Architecture Advisory</p>
+          <p class="hero-eyebrow">Independent Technology Systems Advisory</p>
           <h1 class="hero-statement">Judgement. Clarity. Risk Compression.</h1>
           <div class="hero-rule"></div>
           <p class="hero-support">
-            Independent advisory for software and infrastructure systems that require structural clarity before change.
+            We help organizations see clearly, decide correctly, and structure their technology systems—without vendor pressure or implementation entanglement.
           </p>
+          <p class="hero-boundary">We advise. We don't implement.</p>
         </div>
         <div class="hero-artifact" aria-hidden="true">
-          <svg class="hero-artifact__diagram" viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
-            <rect x="10" y="10" width="80" height="50" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
-            <rect x="18" y="22" width="32" height="26" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>
-            <rect x="54" y="22" width="32" height="26" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>
-            <line x1="50" y1="35" x2="54" y2="35" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
-            <line x1="86" y1="35" x2="110" y2="35" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
-            <rect x="110" y="10" width="80" height="50" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
-            <rect x="118" y="22" width="32" height="26" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>
-            <line x1="110" y1="35" x2="118" y2="35" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
-            <rect x="10" y="75" width="180" height="55" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
-            <line x1="50" y1="60" x2="50" y2="75" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
-            <line x1="150" y1="60" x2="150" y2="75" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
-          </svg>
+          <img src="assets/hero-brutalist.png" alt="Brutalist architecture — metaphor for structural clarity in software and infrastructure systems" class="hero-artifact__img" loading="eager">
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--problems" id="problems" data-phase="1">
+      <div class="section__top-line"></div>
+      <div class="section__inner section__inner--contained section__inner--narrow">
+        <div class="content-block content-block--centered content-block--wide">
+          <h2 class="section__title reveal">Does this sound familiar?</h2>
+          <ul class="problem-list reveal">
+            <li>Your technology infrastructure has grown organically, and no one has a clear picture.</li>
+            <li>Technology decisions are made without architectural grounding.</li>
+            <li>Vendor proposals are difficult to evaluate objectively.</li>
+            <li>Systems resist understanding—dependencies, boundaries, and failure modes are unclear.</li>
+            <li>Change is reactive rather than structured.</li>
+          </ul>
+          <p class="section__text reveal">We help organizations in exactly these situations.</p>
         </div>
       </div>
     </section>
@@ -60,17 +67,44 @@
           <div class="content-block content-block--centered content-block--narrow">
             <h2 class="section__title reveal">Structural clarity enables elegant systems.</h2>
             <div class="section__text reveal">
-              <p>Most organizations chase sophistication through tools, trends, and surface-level optimization. Elegance only emerges when the underlying system architecture is sound.</p>
-              <p>We help organizations see the structure of their software and infrastructure before they act. The rest follows.</p>
+              <p>Most organizations chase sophistication through tools, trends, and surface-level optimization. Elegance in technology systems only emerges when the underlying architecture is sound.</p>
+              <p>We help organizations see the structure of their software, infrastructure, and platforms before they act. Decision compression. The rest follows.</p>
             </div>
           </div>
         </div>
       </div>
     </section>
 
+    <section class="section section--process" id="process" data-phase="1">
+      <div class="section__top-line"></div>
+      <div class="section__inner section__inner--contained section__inner--wide">
+        <div class="content-block content-block--centered content-block--wide">
+          <h2 class="section__title reveal">How we work.</h2>
+          <ol class="process-list reveal">
+            <li>
+              <span class="process-list__step">Qualification</span>
+              <span class="process-list__desc">Determine fit, confirm expectations align with advisory-only scope.</span>
+            </li>
+            <li>
+              <span class="process-list__step">Paid Inspection</span>
+              <span class="process-list__desc">Assess current state, map dependencies, identify risks and constraints.</span>
+            </li>
+            <li>
+              <span class="process-list__step">Advisory Artifact</span>
+              <span class="process-list__desc">Structured recommendations, prioritization, and architectural direction.</span>
+            </li>
+            <li>
+              <span class="process-list__step">Optional Roadmap & Retainer</span>
+              <span class="process-list__desc">Execution sequencing guidance and ongoing stewardship—advisory only.</span>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
     <section class="image-band image-band--structure" data-phase="1">
       <div class="image-band__recess">
-        <img src="assets/the-brutal-wonders-of-the-architecture-world-gq-style-fall-2018-12.avif" alt="Structural rhythm — visual metaphor for system modularity" class="image-band__img" loading="lazy">
+        <img src="assets/the-brutal-wonders-of-the-architecture-world-gq-style-fall-2018-12.avif" alt="Structural rhythm — metaphor for system modularity in technology infrastructure" class="image-band__img" loading="lazy">
       </div>
     </section>
 
@@ -93,7 +127,7 @@
         <div class="content-block content-block--image content-block--image-large">
           <div class="image-panel image-panel--major reveal">
             <div class="image-panel__wrap">
-              <img src="assets/corner.webp" alt="Modular structure — metaphor for dependency and boundary clarity" class="image-panel__img" loading="lazy">
+              <img src="assets/corner.webp" alt="Modular structure — metaphor for dependency and boundary clarity in software systems" class="image-panel__img" loading="lazy">
             </div>
           </div>
         </div>
@@ -102,7 +136,7 @@
 
     <section class="image-band image-band--order" data-phase="2">
       <div class="image-band__recess image-band__recess--inset">
-        <img src="assets/Welbeck_Street_Car_Park2.jpg" alt="Load-bearing geometry — metaphor for structural system design" class="image-band__img" loading="lazy">
+        <img src="assets/Welbeck_Street_Car_Park2.jpg" alt="Load-bearing geometry — metaphor for structural integrity in technology system design" class="image-band__img" loading="lazy">
       </div>
     </section>
 
@@ -112,7 +146,7 @@
         <div class="content-block content-block--image content-block--image-large content-block--image-offset">
           <div class="image-panel image-panel--major reveal">
             <div class="image-panel__wrap">
-              <img src="assets/Brutalist%20Architecture%20Pattern%20in%20Monochrome.jpg" alt="Repetitive structural pattern — metaphor for system boundary definition" class="image-panel__img" loading="lazy">
+              <img src="assets/Brutalist%20Architecture%20Pattern%20in%20Monochrome.jpg" alt="Repetitive structural pattern — metaphor for system boundary definition in software architecture" class="image-panel__img" loading="lazy">
             </div>
           </div>
         </div>
@@ -132,6 +166,17 @@
       </div>
     </section>
 
+    <section class="section section--boundaries" id="boundaries" data-phase="3">
+      <div class="section__top-line"></div>
+      <div class="section__inner section__inner--contained section__inner--minimal">
+        <div class="content-block content-block--centered content-block--narrow">
+          <h2 class="section__title reveal">What we don't do.</h2>
+          <p class="boundaries__statement reveal">We do not implement, deploy, operate, or assume operational custody.</p>
+          <p class="boundaries__detail reveal">No managed services. No break/fix support. No project delivery ownership. We advise.</p>
+        </div>
+      </div>
+    </section>
+
     <section class="section section--outcomes" id="outcomes" data-phase="3">
       <div class="section__inner section__inner--contained section__inner--narrow">
         <div class="content-block content-block--centered content-block--wide">
@@ -141,7 +186,7 @@
             <p>The result is infrastructure that is more resilient, more understandable, and easier to maintain—without unnecessary complexity.</p>
           </div>
           <div class="outcomes__divider"></div>
-          <p class="section__accent reveal">Understanding before implementation.</p>
+          <p class="section__accent reveal">Clarity before action. Understanding before implementation.</p>
         </div>
       </div>
     </section>
@@ -151,7 +196,7 @@
         <div class="content-block content-block--centered content-block--narrow">
           <h2 class="section__title reveal">Discuss your system architecture.</h2>
           <div class="section__text reveal">
-            <p>If your organization faces structural ambiguity—infrastructure that has grown unclear, systems that resist understanding, or decisions that need architectural input—we can help.</p>
+            <p>If your organization faces structural ambiguity—technology infrastructure that has grown unclear, software systems that resist understanding, or decisions that need architectural input—we can help.</p>
           </div>
           <a href="mailto:contact@syndicatesystems.com" class="engagement__cta reveal">Get in touch</a>
           <p class="engagement__email reveal">contact@syndicatesystems.com</p>
