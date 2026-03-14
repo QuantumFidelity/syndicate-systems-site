@@ -161,12 +161,12 @@ body.in-phase-3 .site-header__link:focus {
 }
 
 /* --------------------------------------------------------------------------
-   Hero — Architectural plate composition
+   Hero — Statement + Evidence consultancy pattern
    -------------------------------------------------------------------------- */
 .hero {
   min-height: 100vh;
   min-height: 100svh;
-  padding: 6rem var(--content-padding) 3rem;
+  padding: 6rem var(--content-padding) 4rem;
   position: relative;
   background-color: var(--color-charcoal);
   overflow: visible;
@@ -177,9 +177,9 @@ body.in-phase-3 .site-header__link:focus {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-  background-size: 64px 64px;
+    linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+  background-size: 48px 48px;
   pointer-events: none;
 }
 
@@ -187,165 +187,114 @@ body.in-phase-3 .site-header__link:focus {
   width: 100%;
   max-width: min(92vw, 1560px);
   margin: 0 auto;
-  min-height: 420px;
+  min-height: 380px;
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  grid-template-rows: minmax(240px, 1fr) auto;
-  gap: 2rem;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr;
+  gap: 3rem;
   position: relative;
   z-index: 1;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  padding: 2.5rem;
-  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 3rem;
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .hero-shell::after {
   content: '';
   position: absolute;
-  top: 2.5rem;
-  bottom: 2.5rem;
-  left: 68%;
+  top: 3rem;
+  bottom: 3rem;
+  left: calc(50% - 1px);
   width: 1px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .hero-copy {
-  grid-column: 1 / 2;
-  grid-row: 1 / 2;
+  grid-column: 1;
+  grid-row: 1;
   align-self: center;
   justify-self: start;
-  max-width: 760px;
-  padding: 1rem 1.5rem 1rem 0;
+  max-width: 520px;
 }
 
 .hero-eyebrow {
-  font-size: 0.8rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.72);
-  margin-bottom: 2.5rem;
-}
-
-.hero-brand {
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.55);
   margin-bottom: 1.5rem;
 }
 
 .hero-statement {
-  font-size: clamp(2.25rem, 5vw, 3.5rem);
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
   font-weight: 500;
-  margin: 0 0 1.5rem;
+  margin: 0 0 1.25rem;
   color: var(--color-white);
 }
 
-.hero-statement .hero-statement__line {
-  display: block;
-}
-
-.hero-tagline {
-  font-size: clamp(1rem, 1.5vw, 1.25rem);
-  line-height: 1.4;
-  color: rgba(255, 255, 255, 0.85);
-  margin: 0 0 1.5rem;
-}
-
 .hero-rule {
-  width: 80px;
+  width: 72px;
   height: 1px;
   background: rgba(255, 255, 255, 0.2);
-  margin: 0 0 1.5rem;
+  margin: 0 0 1.25rem;
 }
 
 .hero-support {
-  max-width: 36rem;
+  max-width: 32rem;
   font-size: 0.9375rem;
-  line-height: 1.65;
-  color: rgba(255, 255, 255, 0.58);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.55);
   margin: 0;
 }
 
-.hero-band {
-  grid-column: 1 / 3;
-  grid-row: 2 / 3;
-  height: 200px;
-  overflow: hidden;
-  position: relative;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  margin-top: 2rem;
+/* Structural artifact — systems-style diagram */
+.hero-artifact {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: end;
+  justify-self: end;
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 1;
 }
 
-/* Abstract structural element — replaces photo */
-.abstract-structural {
-  position: absolute;
-  inset: 0;
-  background-color: #111;
-}
-
-.abstract-structural__grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 32px 32px;
-}
-
-.abstract-structural__blocks {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  grid-template-rows: repeat(4, 1fr);
-  gap: 1px;
-  padding: 1.5rem;
-}
-
-.abstract-structural__block {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.abstract-structural__block:nth-child(3),
-.abstract-structural__block:nth-child(7),
-.abstract-structural__block:nth-child(14),
-.abstract-structural__block:nth-child(22),
-.abstract-structural__block:nth-child(28) {
-  background: rgba(255, 255, 255, 0.06);
+.hero-artifact__diagram {
+  width: 100%;
+  height: 100%;
+  opacity: 0.4;
 }
 
 @media (max-width: 900px) {
   .hero {
     min-height: auto;
-    padding: 6rem 0 2rem;
+    padding: 6rem 0 3rem;
   }
 
   .hero-shell {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto;
     min-height: auto;
-    padding: 1.25rem;
+    padding: 2rem;
+    gap: 2rem;
+  }
+
+  .hero-shell::after {
+    display: none;
   }
 
   .hero-copy {
     grid-column: 1;
     grid-row: 1;
-    padding: 1rem 0 0;
   }
 
-  .hero-band {
+  .hero-artifact {
     grid-column: 1;
     grid-row: 2;
-    height: 220px;
-    margin-top: 2rem;
-  }
-
-  .hero-shell::after {
-    display: none;
+    align-self: center;
+    justify-self: center;
+    max-width: 240px;
   }
 }
 
@@ -925,15 +874,6 @@ body.in-phase-3 .site-header__link:focus {
 
   .hero {
     min-height: 100vh;
-  }
-
-  .hero__upper {
-    padding: var(--space-6xl) var(--content-padding) var(--space-5xl);
-  }
-
-  .hero__image-recess {
-    height: 35vh;
-    min-height: 260px;
   }
 
   .image-band {
