@@ -43,6 +43,12 @@ a {
    Design Tokens — Light architectural drafting aesthetic
    -------------------------------------------------------------------------- */
 :root {
+  /* Ripple illumination — set by globe.js when signal lands */
+  --ripple-r: 0;
+  --ripple-g: 0.83;
+  --ripple-b: 1;
+  --ripple-intensity: 0;
+
   /* Background */
   --bg-main: #FAFAFA;
   --bg-section: #F3F3F3;
@@ -59,6 +65,18 @@ a {
 
   /* Accent — used sparingly */
   --accent: #5E7383;
+
+  /* Ripple illumination — set by globe.js when signal lands */
+  --ripple-r: 0;
+  --ripple-g: 0.84;
+  --ripple-b: 1;
+  --ripple-intensity: 0;
+
+  /* Ripple illumination (set by globe.js during ripple effect) */
+  --ripple-r: 0;
+  --ripple-g: 0.83;
+  --ripple-b: 1;
+  --ripple-intensity: 0;
 
   /* Legacy aliases for compatibility */
   --color-white: #FFFFFF;
@@ -96,6 +114,12 @@ a {
   --content-padding: 24px;
   --transition-duration: 0.45s;
   --transition-easing: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* Ripple illumination — set by globe.js during signal impact */
+  --ripple-r: 0;
+  --ripple-g: 0.83;
+  --ripple-b: 1;
+  --ripple-intensity: 0;
 }
 
 @media (min-width: 768px) {
@@ -170,6 +194,9 @@ a {
   position: relative;
   background-color: var(--bg-main);
   overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .hero::before {
@@ -189,7 +216,7 @@ a {
   margin: 0 auto;
   min-height: 380px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1.6fr;
   grid-template-rows: 1fr;
   gap: 3rem;
   position: relative;
@@ -198,6 +225,7 @@ a {
   padding: 3rem;
   background: var(--bg-section);
   overflow: visible;
+  align-items: center;
 }
 
 @media (min-width: 960px) {
@@ -235,6 +263,7 @@ a {
   text-transform: uppercase;
   color: var(--text-muted);
   margin-bottom: 1.5rem;
+  transition: color 0.4s ease, text-shadow 0.4s ease;
 }
 
 .hero-statement {
@@ -245,6 +274,11 @@ a {
   font-weight: 600;
   margin: 0 0 1.25rem;
   color: var(--text-primary);
+  transition: color 0.4s ease, text-shadow 0.4s ease;
+}
+
+.hero[data-ripple="true"] .hero-statement {
+  text-shadow: 0 0 24px rgba(var(--ripple-r, 0), var(--ripple-g, 214), var(--ripple-b, 255), calc(0.35 * var(--ripple-intensity, 0)));
 }
 
 .hero-rule {
@@ -260,6 +294,22 @@ a {
   line-height: 1.6;
   color: var(--text-secondary);
   margin: 0;
+  transition: color 0.4s ease, text-shadow 0.4s ease;
+}
+
+.hero[data-ripple="true"] .hero-eyebrow,
+.hero[data-ripple="true"] .hero-support,
+.hero[data-ripple="true"] .hero-rule {
+  color: rgba(var(--ripple-r, 0), var(--ripple-g, 214), var(--ripple-b, 255));
+  opacity: calc(0.7 + 0.3 * var(--ripple-intensity, 0));
+}
+
+.hero[data-ripple="true"] .accent-block {
+  border-color: rgba(var(--ripple-r, 0), var(--ripple-g, 214), var(--ripple-b, 255));
+}
+
+.hero[data-ripple="true"] .accent-block__text {
+  color: rgba(var(--ripple-r, 0), var(--ripple-g, 214), var(--ripple-b, 255));
 }
 
 .hero-boundary {
@@ -298,10 +348,10 @@ a {
 .hero-artifact {
   grid-column: 2;
   grid-row: 1;
-  align-self: end;
-  justify-self: end;
+  align-self: center;
+  justify-self: stretch;
   width: 100%;
-  max-width: 320px;
+  max-width: 100%;
 }
 
 .hero-artifact--pillars {
@@ -311,7 +361,7 @@ a {
 /* System diagram — interactive graph */
 @media (min-width: 901px) {
   .hero-shell {
-    grid-template-columns: 1fr 1.35fr;
+    grid-template-columns: 1fr 1.8fr;
   }
 }
 
@@ -319,23 +369,26 @@ a {
   width: 100%;
   max-width: 100%;
   height: 100%;
-  min-height: 240px;
+  min-height: 360px;
   margin: 0;
   align-self: stretch;
   justify-self: stretch;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: visible;
 }
 
 .system-diagram {
+  position: relative;
   width: 100%;
   height: 100%;
   max-width: 100%;
   max-height: 100%;
-  min-height: 280px;
-  aspect-ratio: 1.2 / 1;
-  overflow: hidden;
+  min-height: 420px;
+  overflow: visible;
+  transform: scale(1.22);
+  transform-origin: 0% 50%;
 }
 
 .system-diagram__svg,
@@ -343,6 +396,17 @@ a {
   width: 100%;
   height: 100%;
   display: block;
+}
+
+.system-diagram canvas {
+  position: relative;
+  z-index: 1;
+}
+
+.system-diagram canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
 }
 
 .system-diagram canvas {
