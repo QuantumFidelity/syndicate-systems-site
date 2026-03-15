@@ -23,6 +23,7 @@ body {
   line-height: 1.6;
   color: var(--text-primary);
   background-color: var(--bg-main);
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -171,7 +172,7 @@ a {
   padding: 6rem var(--content-padding) 4rem;
   position: relative;
   background-color: var(--bg-main);
-  overflow: visible;
+  overflow-x: hidden; /* keep diagram-frame on screen */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -202,7 +203,7 @@ a {
   border: 1px solid var(--line-subtle);
   padding: 3rem;
   background: var(--bg-section);
-  overflow: visible;
+  overflow: hidden;
   align-items: center;
 }
 
@@ -352,9 +353,8 @@ a {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  /* Desktop panel: 500–560px × 380–430px */
-  min-width: 400px;
-  min-height: 360px;
+  min-width: 0; /* allow shrink to avoid overflow */
+  min-height: 0; /* respect top/bottom; avoid overflow when hero is short */
 }
 
 .system-diagram {
@@ -363,7 +363,7 @@ a {
   height: 100%;
   max-width: 100%;
   max-height: 100%;
-  min-height: 360px;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -379,7 +379,7 @@ a {
 
 .system-graph__link {
   stroke: var(--text-secondary);
-  stroke-opacity: 0.14;
+  stroke-opacity: 0.2;
   stroke-width: 1;
   fill: none;
   transition: stroke-opacity 0.5s var(--transition-easing),
@@ -424,10 +424,19 @@ a {
 }
 
 .system-diagram__svg,
-.system-diagram canvas {
+.system-diagram canvas,
+.hologram-morph__canvas {
   width: 100%;
   height: 100%;
   display: block;
+}
+
+.hologram-morph__canvas {
+  cursor: default;
+}
+
+.hologram-morph__static {
+  font-family: inherit;
 }
 
 .system-diagram canvas {
@@ -443,6 +452,19 @@ a {
 
 .system-diagram canvas {
   cursor: default;
+}
+
+/* Hologram Morph Engine — 3D volumetric morphology */
+.hologram-morph__canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: var(--color-white);
+}
+
+.hologram-morph__static {
+  font-family: Inter, sans-serif;
+  letter-spacing: 0.06em;
 }
 
 .system-diagram__link {
@@ -554,6 +576,12 @@ a {
 
   .hero-shell::after {
     display: none;
+  }
+
+  /* Diagram full width on mobile — avoid right-half overlay overflow */
+  .diagram-frame {
+    left: 2rem;
+    right: 2rem;
   }
 
   .hero-copy {
