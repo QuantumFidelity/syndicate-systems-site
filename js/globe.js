@@ -74,12 +74,13 @@ function initGlobe() {
   fillLight.position.set(-0.5, -0.3, -0.4);
   scene.add(fillLight);
   var camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
-  camera.position.z = 2.25;
+  /* Orbital rings extend to radius × 1.28 ≈ 1.38; need d ≥ 1.38/tan(25°) ≈ 2.96 */
+  camera.position.z = 3.05;
 
   var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, premultipliedAlpha: false });
   renderer.setSize(width, height);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setClearColor(0xfafafa, 1);
+  renderer.setClearColor(0xffffff, 1);
   renderer.domElement.style.position = 'absolute';
   renderer.domElement.style.inset = '0';
   renderer.domElement.style.width = '100%';
@@ -410,12 +411,13 @@ function initGlobe() {
 
   var signalLine = null;
 
-  /* OrbitControls — fixed zoom, slow auto-rotate */
+  /* OrbitControls — fixed view, no user interaction, slow auto-rotate */
   var controls = new OrbitControls(camera, renderer.domElement);
   controls.enableZoom = false;
   controls.enablePan = false;
-  controls.minDistance = 2.25;
-  controls.maxDistance = 2.25;
+  controls.enableRotate = false;
+  controls.minDistance = 3.05;
+  controls.maxDistance = 3.05;
   controls.autoRotate = true;
   controls.autoRotateSpeed = 0.28;
 
