@@ -43,12 +43,6 @@ a {
    Design Tokens — Light architectural drafting aesthetic
    -------------------------------------------------------------------------- */
 :root {
-  /* Ripple illumination — set by globe.js when signal lands */
-  --ripple-r: 0;
-  --ripple-g: 0.83;
-  --ripple-b: 1;
-  --ripple-intensity: 0;
-
   /* Background */
   --bg-main: #FAFAFA;
   --bg-section: #F3F3F3;
@@ -65,18 +59,6 @@ a {
 
   /* Accent — used sparingly */
   --accent: #5E7383;
-
-  /* Ripple illumination — set by globe.js when signal lands */
-  --ripple-r: 0;
-  --ripple-g: 0.84;
-  --ripple-b: 1;
-  --ripple-intensity: 0;
-
-  /* Ripple illumination (set by globe.js during ripple effect) */
-  --ripple-r: 0;
-  --ripple-g: 0.83;
-  --ripple-b: 1;
-  --ripple-intensity: 0;
 
   /* Legacy aliases for compatibility */
   --color-white: #FFFFFF;
@@ -114,12 +96,6 @@ a {
   --content-padding: 24px;
   --transition-duration: 0.45s;
   --transition-easing: cubic-bezier(0.22, 0.61, 0.36, 1);
-
-  /* Ripple illumination — set by globe.js during signal impact */
-  --ripple-r: 0;
-  --ripple-g: 0.83;
-  --ripple-b: 1;
-  --ripple-intensity: 0;
 }
 
 @media (min-width: 768px) {
@@ -277,10 +253,6 @@ a {
   transition: color 0.4s ease, text-shadow 0.4s ease;
 }
 
-.hero[data-ripple="true"] .hero-statement {
-  text-shadow: 0 0 24px rgba(var(--ripple-r, 0), var(--ripple-g, 214), var(--ripple-b, 255), calc(0.35 * var(--ripple-intensity, 0)));
-}
-
 .hero-rule {
   width: 72px;
   height: 2px;
@@ -295,21 +267,6 @@ a {
   color: var(--text-secondary);
   margin: 0;
   transition: color 0.4s ease, text-shadow 0.4s ease;
-}
-
-.hero[data-ripple="true"] .hero-eyebrow,
-.hero[data-ripple="true"] .hero-support,
-.hero[data-ripple="true"] .hero-rule {
-  color: rgba(var(--ripple-r, 0), var(--ripple-g, 214), var(--ripple-b, 255));
-  opacity: calc(0.7 + 0.3 * var(--ripple-intensity, 0));
-}
-
-.hero[data-ripple="true"] .accent-block {
-  border-color: rgba(var(--ripple-r, 0), var(--ripple-g, 214), var(--ripple-b, 255));
-}
-
-.hero[data-ripple="true"] .accent-block__text {
-  color: rgba(var(--ripple-r, 0), var(--ripple-g, 214), var(--ripple-b, 255));
 }
 
 .hero-boundary {

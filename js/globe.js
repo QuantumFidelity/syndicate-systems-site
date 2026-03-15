@@ -1,6 +1,6 @@
 /**
  * Syndicate Systems — Particle Globe with Signals
- * Glowing points on continents, surface grid, orbital rings; signals trigger color ripple
+ * Glowing points on continents, surface grid, orbital rings; signals travel between land points
  */
 
 import * as THREE from 'three';
@@ -64,11 +64,15 @@ function initGlobe() {
   var height = Math.max(container.clientHeight || 480, 300);
 
   var scene = new THREE.Scene();
-  var ambient = new THREE.AmbientLight(0xffffff, 0.5);
+  var ambient = new THREE.AmbientLight(0xffffff, 0.6);
   scene.add(ambient);
-  var dirLight = new THREE.DirectionalLight(0xaaccff, 0.9);
+  var dirLight = new THREE.DirectionalLight(0xffffff, 0.85);
   dirLight.position.set(0.6, 0.9, 0.5);
   scene.add(dirLight);
+  /* Fill light — subtle from opposite side so dark side isn't flat black */
+  var fillLight = new THREE.DirectionalLight(0xffffff, 0.15);
+  fillLight.position.set(-0.5, -0.3, -0.4);
+  scene.add(fillLight);
   var camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
   camera.position.z = 2.25;
 
@@ -83,7 +87,7 @@ function initGlobe() {
   container.appendChild(renderer.domElement);
 
   var GLOBE_RADIUS = 1.08;
-  var RIPPLE_COLORS = [0xffffff, 0xe0e0e0, 0xc0c0c0, 0xa0a0a0];
+  var SIGNAL_COLOR = 0x888888;
 
   /* Continent signal targets — land points for signals to travel to */
   var signalTargets = [
@@ -92,31 +96,32 @@ function initGlobe() {
   ];
 
 
-  /* Shaded sphere base — gives globe volume, not flat wire */
+  /* Shaded sphere base — softer gradient, ambient terminator, fill light */
   var lightDir = new THREE.Vector3(0.4, 0.9, 0.3).normalize();
+  var fillDir = new THREE.Vector3(-0.5, -0.3, 0.4).normalize();
   var shadeMat = new THREE.ShaderMaterial({
     uniforms: {
-      lightDir: { value: lightDir }
+      lightDir: { value: lightDir },
+      fillDir: { value: fillDir }
     },
     vertexShader: [
       'varying vec3 vNormal;',
-      'varying vec3 vWorldPos;',
       'void main() {',
       '  vNormal = normalize(normalMatrix * normal);',
-      '  vec4 w = modelMatrix * vec4(position, 1.0);',
-      '  vWorldPos = w.xyz;',
       '  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
       '}'
     ].join('\n'),
     fragmentShader: [
       'uniform vec3 lightDir;',
+      'uniform vec3 fillDir;',
       'varying vec3 vNormal;',
-      'varying vec3 vWorldPos;',
       'void main() {',
       '  float diff = max(0.0, dot(vNormal, lightDir));',
-      '  float ambient = 0.25;',
-      '  float lit = ambient + 0.65 * diff;',
-      '  float gray = mix(0.35, 0.92, lit);',
+      '  float fill = max(0.0, dot(vNormal, fillDir)) * 0.25;',
+      '  float ambient = 0.32;',
+      '  float terminator = smoothstep(-0.15, 0.12, dot(vNormal, lightDir));',
+      '  float lit = ambient + 0.55 * diff + fill + 0.08 * terminator;',
+      '  float gray = mix(0.42, 0.91, lit);',
       '  vec3 col = vec3(gray, gray, gray);',
       '  gl_FragColor = vec4(col, 0.5);',
       '}'
@@ -154,12 +159,39 @@ function initGlobe() {
   var particleGeom = new THREE.BufferGeometry();
   particleGeom.setAttribute('position', new THREE.Float32BufferAttribute(particlePositions, 3));
   particleGeom.setAttribute('color', new THREE.Float32BufferAttribute(particleColors, 3));
-  var particleMat = new THREE.PointsMaterial({
-    size: 0.02,
-    vertexColors: true,
+  var particleSizes = [];
+  for (var pi = 0; pi < particlePositions.length / 3; pi++) {
+    particleSizes.push(0.014 + Math.random() * 0.012);
+  }
+  particleGeom.setAttribute('size', new THREE.Float32BufferAttribute(particleSizes, 1));
+  var particleMat = new THREE.ShaderMaterial({
+    uniforms: {
+      scale: { value: 180 }
+    },
+    vertexShader: [
+      'attribute float size;',
+      'attribute vec3 color;',
+      'varying vec3 vColor;',
+      'varying float vAlpha;',
+      'void main() {',
+      '  vColor = color;',
+      '  vec4 mv = modelViewMatrix * vec4(position, 1.0);',
+      '  vAlpha = 1.0 - smoothstep(1.2, 2.2, -mv.z) * 0.4;',
+      '  gl_PointSize = size * scale / -mv.z;',
+      '  gl_Position = projectionMatrix * mv;',
+      '}'
+    ].join('\n'),
+    fragmentShader: [
+      'varying vec3 vColor;',
+      'varying float vAlpha;',
+      'void main() {',
+      '  vec2 c = gl_PointCoord - 0.5;',
+      '  float r = length(c) * 2.0;',
+      '  float soft = 1.0 - smoothstep(0.3, 0.85, r);',
+      '  gl_FragColor = vec4(vColor, soft * 0.9 * vAlpha);',
+      '}'
+    ].join('\n'),
     transparent: true,
-    opacity: 0.92,
-    sizeAttenuation: true,
     depthWrite: false,
     blending: THREE.NormalBlending
   });
@@ -183,14 +215,35 @@ function initGlobe() {
     }
   }
   var gridGeom = new THREE.BufferGeometry().setFromPoints(gridSegments);
-  var gridLines = new THREE.LineSegments(gridGeom, new THREE.LineBasicMaterial({
-    color: 0x666666,
+  var gridDepthMat = new THREE.ShaderMaterial({
+    uniforms: {
+      baseColor: { value: new THREE.Color(0x666666) },
+      cameraPosition: { value: camera.position }
+    },
+    vertexShader: [
+      'varying float vViewZ;',
+      'void main() {',
+      '  vec4 mvPos = modelViewMatrix * vec4(position, 1.0);',
+      '  vViewZ = -mvPos.z;',
+      '  gl_Position = projectionMatrix * mvPos;',
+      '}'
+    ].join('\n'),
+    fragmentShader: [
+      'uniform vec3 baseColor;',
+      'varying float vViewZ;',
+      'void main() {',
+      '  float depthFade = mix(0.35, 1.0, smoothstep(0.8, 1.8, vViewZ));',
+      '  gl_FragColor = vec4(baseColor, 0.45 * depthFade);',
+      '}'
+    ].join('\n'),
     transparent: true,
-    opacity: 0.45
-  }));
+    depthWrite: false
+  });
+  var gridLines = new THREE.LineSegments(gridGeom, gridDepthMat);
   scene.add(gridLines);
 
-  /* Orbital rings — arcs around the globe */
+  /* Orbital rings — arcs with front-to-back gradient, subtle glow */
+  var orbitalRings = [];
   function addOrbitalRing(inclination, radiusScale) {
     var ringPts = [];
     for (var i = 0; i <= 72; i++) {
@@ -202,13 +255,35 @@ function initGlobe() {
       ringPts.push(new THREE.Vector3(x, y, z2));
     }
     var ringGeom = new THREE.BufferGeometry().setFromPoints(ringPts);
-    var gray = 0.5;
-    var ringMat = new THREE.LineBasicMaterial({
-      color: 0x888888,
+    var ringMat = new THREE.ShaderMaterial({
+      uniforms: {
+        cameraPosition: { value: camera.position },
+        baseColor: { value: new THREE.Color(0x888888) }
+      },
+      vertexShader: [
+        'varying float vViewZ;',
+        'void main() {',
+        '  vec4 mvPos = modelViewMatrix * vec4(position, 1.0);',
+        '  vViewZ = -mvPos.z;',
+        '  gl_Position = projectionMatrix * mvPos;',
+        '}'
+      ].join('\n'),
+      fragmentShader: [
+        'uniform vec3 baseColor;',
+        'varying float vViewZ;',
+        'void main() {',
+        '  float depthFade = mix(0.35, 1.0, smoothstep(0.8, 1.9, vViewZ));',
+        '  float glow = 0.08 + depthFade * 0.5;',
+        '  gl_FragColor = vec4(baseColor, glow);',
+        '}'
+      ].join('\n'),
       transparent: true,
-      opacity: 0.5
+      depthWrite: false
     });
-    scene.add(new THREE.Line(ringGeom, ringMat));
+    var ringLine = new THREE.Line(ringGeom, ringMat);
+    ringLine.userData = { inclination: inclination, radiusScale: radiusScale, phase: Math.random() * Math.PI * 2 };
+    orbitalRings.push(ringLine);
+    scene.add(ringLine);
   }
 
   /* Coastline outlines — clearer continent definition */
@@ -250,63 +325,69 @@ function initGlobe() {
     }
   }
   var coastGeom = new THREE.BufferGeometry().setFromPoints(coastSegments);
-  var coastLines = new THREE.LineSegments(coastGeom, new THREE.LineBasicMaterial({
-    color: 0x333333,
+  var coastDepthMat = new THREE.ShaderMaterial({
+    uniforms: {
+      baseColor: { value: new THREE.Color(0x333333) },
+      cameraPosition: { value: camera.position }
+    },
+    vertexShader: [
+      'varying float vViewZ;',
+      'void main() {',
+      '  vec4 mvPos = modelViewMatrix * vec4(position, 1.0);',
+      '  vViewZ = -mvPos.z;',
+      '  gl_Position = projectionMatrix * mvPos;',
+      '}'
+    ].join('\n'),
+    fragmentShader: [
+      'uniform vec3 baseColor;',
+      'varying float vViewZ;',
+      'void main() {',
+      '  float depthFade = mix(0.5, 1.0, smoothstep(0.8, 1.8, vViewZ));',
+      '  gl_FragColor = vec4(baseColor, 0.82 * depthFade);',
+      '}'
+    ].join('\n'),
     transparent: true,
-    opacity: 0.75
-  }));
+    depthWrite: false
+  });
+  var coastLines = new THREE.LineSegments(coastGeom, coastDepthMat);
   scene.add(coastLines);
 
   addOrbitalRing(0.4, 1.15);
   addOrbitalRing(-0.3, 1.22);
   addOrbitalRing(0.7, 1.28);
 
-  var rippleState = { active: false, origin: new THREE.Vector3(), progress: 0, color: new THREE.Color(0xffffff), intensity: 0 };
-  var globeMat = new THREE.ShaderMaterial({
-    uniforms: {
-      rippleOrigin: { value: new THREE.Vector3() },
-      rippleProgress: { value: 0 },
-      rippleColor: { value: new THREE.Color(0xffffff) },
-      rippleIntensity: { value: 0 }
-    },
+  /* Atmosphere — subtle outer glow at globe edge */
+  var atmosGeom = new THREE.SphereGeometry(GLOBE_RADIUS * 1.06, 48, 32);
+  var atmosMat = new THREE.ShaderMaterial({
     vertexShader: [
-      'varying vec3 vWorldPosition;',
+      'varying vec3 vNormal;',
+      'varying vec3 vViewDir;',
       'void main() {',
-      '  vec4 p = modelMatrix * vec4(position, 1.0);',
-      '  vWorldPosition = p.xyz;',
-      '  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
+      '  vec4 mvPos = modelViewMatrix * vec4(position, 1.0);',
+      '  vNormal = normalize(normalMatrix * normal);',
+      '  vViewDir = normalize(-mvPos.xyz);',
+      '  gl_Position = projectionMatrix * mvPos;',
       '}'
     ].join('\n'),
     fragmentShader: [
-      'uniform vec3 rippleOrigin;',
-      'uniform float rippleProgress;',
-      'uniform vec3 rippleColor;',
-      'uniform float rippleIntensity;',
-      'varying vec3 vWorldPosition;',
+      'varying vec3 vNormal;',
+      'varying vec3 vViewDir;',
       'void main() {',
-      '  gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);',
-      '  if (rippleIntensity > 0.0) {',
-      '    vec3 n = normalize(vWorldPosition);',
-      '    vec3 o = normalize(rippleOrigin);',
-      '    float ang = acos(clamp(dot(n, o), -1.0, 1.0));',
-      '    float ring = rippleProgress * 3.14159;',
-      '    float d = abs(ang - ring);',
-      '    float falloff = exp(-d * 1.8) * (1.0 - rippleProgress * 0.2);',
-      '    float glow = exp(-ang * 0.9) * (1.0 - rippleProgress * 0.3);',
-      '    vec3 col = rippleColor * (falloff * 1.0 + glow * 0.6) * rippleIntensity;',
-      '    gl_FragColor = vec4(col, min(0.55, length(col) * 0.8) * rippleIntensity);',
-      '  }',
+      '  float f = 1.0 - abs(dot(normalize(vNormal), vViewDir));',
+      '  f = pow(f, 2.5);',
+      '  float alpha = f * 0.07;',
+      '  gl_FragColor = vec4(0.5, 0.5, 0.5, alpha);',
       '}'
     ].join('\n'),
     transparent: true,
-    depthWrite: false
+    depthWrite: false,
+    side: THREE.BackSide
   });
-  var globeFillGeom = new THREE.SphereGeometry(GLOBE_RADIUS, 64, 48);
-  var globeFill = new THREE.Mesh(globeFillGeom, globeMat);
-  globeFill.renderOrder = -1;
-  scene.add(globeFill);
+  var atmosphere = new THREE.Mesh(atmosGeom, atmosMat);
+  atmosphere.renderOrder = -3;
+  scene.add(atmosphere);
 
-  /* Signals — travel between continents, trigger ripple on arrival */
+  /* Signals — travel between continents */
   var signalState = null;
   var signalInterval = 0;
 
@@ -318,7 +399,7 @@ function initGlobe() {
       from: latLonToVec3(a[0], a[1], GLOBE_RADIUS * 1.01),
       to: latLonToVec3(b[0], b[1], GLOBE_RADIUS * 1.01),
       progress: 0,
-      color: RIPPLE_COLORS[Math.floor(Math.random() * RIPPLE_COLORS.length)]
+      color: SIGNAL_COLOR
     };
   }
 
@@ -336,34 +417,19 @@ function initGlobe() {
   controls.minDistance = 2.25;
   controls.maxDistance = 2.25;
   controls.autoRotate = true;
-  controls.autoRotateSpeed = 0.35;
+  controls.autoRotateSpeed = 0.28;
 
-  function hexToRgb255(hex) {
-    return [((hex >> 16) & 255), ((hex >> 8) & 255), (hex & 255)];
-  }
-
-  function updateRippleCSS() {
-    var root = document.documentElement;
-    var hero = document.getElementById('hero');
-    if (rippleState.active && rippleState.intensity > 0) {
-      var rgb = hexToRgb255(rippleState.color.getHex());
-      root.style.setProperty('--ripple-r', String(rgb[0]));
-      root.style.setProperty('--ripple-g', String(rgb[1]));
-      root.style.setProperty('--ripple-b', String(rgb[2]));
-      root.style.setProperty('--ripple-intensity', String(rippleState.intensity));
-      if (hero) hero.setAttribute('data-ripple', 'true');
-    } else {
-      root.style.setProperty('--ripple-intensity', '0');
-      if (hero) hero.removeAttribute('data-ripple');
-    }
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   }
 
   function animate() {
     requestAnimationFrame(animate);
     var dt = 0.016;
+    var time = performance.now() * 0.001;
 
     if (signalState) {
-      signalState.progress += 0.012;
+      signalState.progress += 0.022;
       if (signalState.progress >= 1) {
         signalState.progress = 1;
         if (signalLine) {
@@ -372,16 +438,11 @@ function initGlobe() {
           signalLine.material.dispose();
           signalLine = null;
         }
-        rippleState.active = true;
-        rippleState.origin.copy(signalState.to);
-        rippleState.progress = 0;
-        rippleState.color.setHex(typeof signalState.color === 'number' ? signalState.color : 0xffffff);
-        rippleState.intensity = 1;
         signalState = null;
       } else {
         var from = signalState.from;
         var to = signalState.to;
-        var t = signalState.progress;
+        var t = easeInOutCubic(signalState.progress);
         var mid = new THREE.Vector3().addVectors(from, to).multiplyScalar(0.5);
         var out = mid.clone().normalize().multiplyScalar(0.4);
         var ctrl = mid.clone().add(out);
@@ -417,26 +478,16 @@ function initGlobe() {
       }
     }
 
-    if (rippleState.active) {
-      rippleState.progress += 0.018;
-      rippleState.intensity = Math.max(0, 1 - rippleState.progress * 0.4);
-      if (rippleState.progress >= 1) {
-        rippleState.active = false;
-        rippleState.intensity = 0;
-      }
-      globeMat.uniforms.rippleOrigin.value.copy(rippleState.origin);
-      globeMat.uniforms.rippleProgress.value = rippleState.progress;
-      globeMat.uniforms.rippleColor.value.copy(rippleState.color);
-      globeMat.uniforms.rippleIntensity.value = rippleState.intensity;
-      updateRippleCSS();
-    } else {
-      updateRippleCSS();
-    }
-
     signalInterval += dt;
-    if (signalInterval > 3.5 && !signalState && !rippleState.active) {
+    if (signalInterval > 2.6 && !signalState) {
       signalInterval = 0;
       spawnSignal();
+    }
+
+    /* Subtle orbital ring oscillation — bounded, no drift */
+    for (var ri = 0; ri < orbitalRings.length; ri++) {
+      var rng = orbitalRings[ri];
+      rng.rotation.y = Math.sin(time * 0.6 + rng.userData.phase) * 0.035;
     }
 
     controls.update();
