@@ -9,14 +9,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-    }
-  }
-  </script>
 </head>
 <body>
   <header class="site-header" id="header">
@@ -37,7 +29,7 @@
       <div class="hero-shell">
         <div class="hero-copy">
           <p class="hero-eyebrow">Independent Technology Systems Advisory</p>
-          <h1 class="hero-statement">Judgement. Clarity. Risk Compression.</h1>
+          <h1 class="hero-statement">Judgment. Clarity. Risk Compression.</h1>
           <div class="hero-rule"></div>
           <p class="hero-support">
             We help organizations see clearly, decide correctly, and structure their technology systems—without vendor pressure or implementation entanglement.
@@ -48,7 +40,7 @@
         </div>
         <div class="hero-artifact hero-artifact--diagram" aria-hidden="true"></div>
         <div class="diagram-frame">
-          <div class="system-diagram" id="systemDiagram" role="img" aria-label="Interactive wireframe globe. Signals travel between continents."></div>
+          <div class="system-diagram" id="systemDiagram" role="img" aria-label="Interactive system graph. Complexity reveals structure on inspection."></div>
         </div>
       </div>
     </section>
@@ -236,9 +228,8 @@
 
   <a href="#hero" class="back-to-top" id="backToTop" aria-label="Back to top">↑</a>
 
-  <script type="module" src="js/globe.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-  <script src="js/diagram.js"></script>
+  <script src="js/system-graph.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>
