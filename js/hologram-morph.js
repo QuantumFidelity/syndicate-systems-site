@@ -12,12 +12,19 @@
   var PAD = 48;
   var INNER_W = 0;
   var INNER_H = 0;
-  var POINT_COUNT = 380;
-  var STRUCTURE_RATIO = 0.7;
-  var K_EDGES_MIN = 2;
-  var K_EDGES_MAX = 4;
-  var EDGE_DISTANCE_THRESHOLD = 80;
-  var POINT_RADIUS = 2.2;
+  var POINT_COUNT = 650;
+  var CONTOUR_RATIO = 0.45;
+  var INTERIOR_RATIO = 0.35;
+  var AMBIENT_RATIO = 0.2;
+  var STRUCTURE_RATIO = CONTOUR_RATIO + INTERIOR_RATIO;
+  var K_EDGES_IDLE_MIN = 1;
+  var K_EDGES_IDLE_MAX = 2;
+  var K_EDGES_RESOLVED_MIN = 2;
+  var K_EDGES_RESOLVED_MAX = 3;
+  var EDGE_DISTANCE_THRESHOLD = 65;
+  var POINT_RADIUS = 2.0;
+  var AMBIENT_OPACITY = 0.22;
+  var AMBIENT_POINT_SCALE = 0.7;
   var PERSPECTIVE = 0.4;
   var STATE = {
     CHAOS: 0,
@@ -129,31 +136,39 @@
     })(),
     turbine: (function () {
       var pts = [];
-      for (var b = 0; b < 12; b++) {
-        var angle = (b / 12) * Math.PI * 2;
-        for (var r = 0; r < 8; r++) {
-          var rad = 0.08 + (r / 7) * 0.32;
+      for (var i = 0; i < 16; i++) {
+        var a = (i / 16) * Math.PI * 2;
+        pts.push({ x: 0.055 * Math.cos(a), y: 0.055 * Math.sin(a), z: 0 });
+      }
+      for (var b = 0; b < 16; b++) {
+        var angle = (b / 16) * Math.PI * 2;
+        for (var s = 0; s < 7; s++) {
+          var rad = 0.06 + (s / 6) * 0.3;
           pts.push({
             x: rad * Math.cos(angle),
             y: rad * Math.sin(angle),
-            z: 0.02 * (r % 2)
+            z: 0.015 * (s % 2) - 0.008
           });
-          pts.push({
-            x: rad * 0.6 * Math.cos(angle + 0.08),
-            y: rad * 0.6 * Math.sin(angle + 0.08),
-            z: -0.02
+          if (s > 0) pts.push({
+            x: rad * 0.92 * Math.cos(angle + 0.04),
+            y: rad * 0.92 * Math.sin(angle + 0.04),
+            z: -0.015
           });
         }
       }
-      for (var r = 0.05; r <= 0.38; r += 0.04) {
-        for (var i = 0; i < 24; i++) {
-          var a = (i / 24) * Math.PI * 2;
+      for (var r = 0.12; r <= 0.36; r += 0.06) {
+        for (var i = 0; i < 20; i++) {
+          var a = (i / 20) * Math.PI * 2;
           pts.push({
             x: r * Math.cos(a),
             y: r * Math.sin(a),
-            z: 0.03
+            z: 0.02 + (r > 0.25 ? 0.01 : 0)
           });
         }
+      }
+      for (var i = 0; i < 28; i++) {
+        var a = (i / 28) * Math.PI * 2;
+        pts.push({ x: 0.38 * Math.cos(a), y: 0.38 * Math.sin(a), z: 0.025 });
       }
       pts.push({ x: 0, y: 0, z: 0 });
       return pts;
@@ -233,6 +248,10 @@
     return Math.sqrt(distSq2(pa, pb));
   }
 
+  function isStructurePoint(p) {
+    return p.morphRole === 'contour' || p.morphRole === 'interior';
+  }
+
   function buildDistributedAnchors() {
     var anchors = [];
     var span = 0.75;
@@ -252,11 +271,12 @@
 
   function buildChaosField() {
     var anchors = buildDistributedAnchors();
-    var structureCount = Math.floor(POINT_COUNT * STRUCTURE_RATIO);
+    var contourCount = Math.floor(POINT_COUNT * CONTOUR_RATIO);
+    var interiorCount = Math.floor(POINT_COUNT * INTERIOR_RATIO);
     points = [];
     for (var i = 0; i < POINT_COUNT; i++) {
       var a = anchors[i];
-      var drift = IDLE_DRIFT_MAX * (0.5 + Math.sin(i * 2.1) * 0.5);
+      var role = i < contourCount ? 'contour' : (i < contourCount + interiorCount ? 'interior' : 'ambient');
       points.push({
         x: a.x,
         y: a.y,
@@ -267,7 +287,7 @@
         vx: (Math.sin(i * 0.7) - 0.5) * 0.0004,
         vy: (Math.cos(i * 0.9) - 0.5) * 0.0004,
         vz: (Math.sin(i * 1.1) - 0.5) * 0.0002,
-        morphRole: i < structureCount ? 'structure' : 'ambient',
+        morphRole: role,
         tx: null,
         ty: null,
         tz: null
@@ -275,9 +295,13 @@
     }
   }
 
+
   function recomputeEdges(projected, structured) {
     var edgeSet = {};
-    var k = K_EDGES_MIN + Math.floor(Math.random() * (K_EDGES_MAX - K_EDGES_MIN + 1));
+    var kMin = structured ? K_EDGES_RESOLVED_MIN : K_EDGES_IDLE_MIN;
+    var kMax = structured ? K_EDGES_RESOLVED_MAX : K_EDGES_IDLE_MAX;
+    var k = kMin + Math.floor((time * 10) % (kMax - kMin + 1));
+    if (k > kMax) k = kMax;
     for (var i = 0; i < projected.length; i++) {
       var pi = projected[i];
       var sorted = [];
@@ -314,8 +338,10 @@
     return targets;
   }
 
+  function isStructurePoint(p) { return p.morphRole === 'contour' || p.morphRole === 'interior'; }
+
   function assignStructurePointsToTargets(targets) {
-    var structurePoints = points.filter(function (p) { return p.morphRole === 'structure'; });
+    var structurePoints = points.filter(isStructurePoint);
     var used = {};
     var assignments = {};
     for (var i = 0; i < structurePoints.length; i++) {
@@ -368,13 +394,16 @@
     projected.sort(function (a, b) { return a.depth - b.depth; });
     recomputeEdges(projected, state === STATE.STRUCTURED);
 
-    var edgeOpacity = getEdgeOpacity();
-    ctx.strokeStyle = 'rgba(74, 74, 74, ' + edgeOpacity + ')';
+    var baseEdgeOpacity = getEdgeOpacity();
     ctx.lineWidth = 1;
     edges.forEach(function (e) {
       var pa = projected[e.a];
       var pb = projected[e.b];
       if (pa && pb) {
+        var depthFactorA = (pa.depth + 0.5);
+        var depthFactorB = (pb.depth + 0.5);
+        var edgeDepthFade = 0.6 + 0.4 * Math.max(depthFactorA, depthFactorB);
+        ctx.strokeStyle = 'rgba(74, 74, 74, ' + (baseEdgeOpacity * edgeDepthFade) + ')';
         ctx.beginPath();
         ctx.moveTo(pa.sx, pa.sy);
         ctx.lineTo(pb.sx, pb.sy);
@@ -382,11 +411,21 @@
       }
     });
 
-    ctx.fillStyle = 'rgba(74, 74, 74, 0.38)';
-    projected.forEach(function (p) {
-      var r = Math.max(1.2, POINT_RADIUS * p.scale);
+    projected.forEach(function (proj) {
+      var pt = points[proj.idx];
+      var depthFactor = (proj.depth + 0.5);
+      var opacity, sizeMult;
+      if (pt.morphRole === 'ambient') {
+        opacity = AMBIENT_OPACITY;
+        sizeMult = AMBIENT_POINT_SCALE;
+      } else {
+        opacity = 0.28 + 0.16 * depthFactor;
+        sizeMult = 0.88 + 0.24 * depthFactor;
+      }
+      var r = Math.max(1.0, POINT_RADIUS * proj.scale * sizeMult);
+      ctx.fillStyle = 'rgba(74, 74, 74, ' + opacity + ')';
       ctx.beginPath();
-      ctx.arc(p.sx, p.sy, r, 0, Math.PI * 2);
+      ctx.arc(proj.sx, proj.sy, r, 0, Math.PI * 2);
       ctx.fill();
     });
   }
@@ -439,43 +478,19 @@
     }
   }
 
-  function applyAmbientDrift() {
-    for (var i = 0; i < points.length; i++) {
-      var p = points[i];
-      if (p.morphRole !== 'ambient') continue;
-      p.x += p.vx;
-      p.y += p.vy;
-      p.z += p.vz;
-      p.vx += (Math.sin(time + i * 0.1) * 0.0002);
-      p.vy += (Math.cos(time * 0.9 + i * 0.07) * 0.0002);
-      p.vz += (Math.sin(time * 0.8 + i * 0.05) * 0.0001);
-      p.vx *= 0.97;
-      p.vy *= 0.97;
-      p.vz *= 0.97;
-      var dx = p.x - p.ax, dy = p.y - p.ay, dz = p.z - p.az;
-      var dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-      if (dist > IDLE_DRIFT_MAX) {
-        var s = IDLE_DRIFT_MAX / dist;
-        p.x = p.ax + dx * s;
-        p.y = p.ay + dy * s;
-        p.z = p.az + dz * s;
-      }
-    }
-  }
-
   function applyStructureMotion() {
     var phase = time * 0.25;
     if (currentShape === 'jet') {
       for (var i = 0; i < points.length; i++) {
         var p = points[i];
-        if (p.morphRole !== 'structure') continue;
+        if (p.morphRole === 'ambient') continue;
         p.y += Math.sin(time + p.x * 8) * STRUCTURE_MOTION_MAX * 0.4;
         p.z += Math.cos(time * 0.8 + p.x * 6) * STRUCTURE_MOTION_MAX * 0.3;
       }
     } else if (currentShape === 'globe') {
       for (var i = 0; i < points.length; i++) {
         var p = points[i];
-        if (p.morphRole !== 'structure') continue;
+        if (p.morphRole === 'ambient') continue;
         var ax = p.x, az = p.z;
         p.x = ax * Math.cos(phase * 0.08) - az * Math.sin(phase * 0.08);
         p.z = ax * Math.sin(phase * 0.08) + az * Math.cos(phase * 0.08);
@@ -484,17 +499,18 @@
     } else if (currentShape === 'turbine') {
       for (var i = 0; i < points.length; i++) {
         var p = points[i];
-        if (p.morphRole !== 'structure') continue;
+        if (p.morphRole === 'ambient') continue;
         var r = Math.sqrt(p.x * p.x + p.y * p.y);
-        if (r < 0.05) continue;
+        if (r < 0.03) continue;
         var a = Math.atan2(p.y, p.x);
-        p.x = r * Math.cos(a + phase * 0.04);
-        p.y = r * Math.sin(a + phase * 0.04);
+        var bladeSpeed = 0.018;
+        p.x = r * Math.cos(a + phase * bladeSpeed);
+        p.y = r * Math.sin(a + phase * bladeSpeed);
       }
     } else if (currentShape === 'geometry') {
       for (var i = 0; i < points.length; i++) {
         var p = points[i];
-        if (p.morphRole !== 'structure') continue;
+        if (p.morphRole === 'ambient') continue;
         var breath = Math.sin(time * 0.6 + p.x * 4) * STRUCTURE_MOTION_MAX;
         p.z += breath;
       }
@@ -525,7 +541,7 @@
       var cx = 0, cy = 0, cz = 0;
       var sc = 0;
       points.forEach(function (p) {
-        if (p.morphRole === 'structure' && assignments[points.indexOf(p)]) {
+        if ((p.morphRole === 'contour' || p.morphRole === 'interior') && assignments[points.indexOf(p)]) {
           var tg = assignments[points.indexOf(p)];
           cx += tg.x;
           cy += tg.y;
@@ -539,7 +555,7 @@
         cz /= sc;
       }
       points.forEach(function (p) {
-        if (p.morphRole === 'structure' && assignments[points.indexOf(p)]) {
+        if ((p.morphRole === 'contour' || p.morphRole === 'interior') && assignments[points.indexOf(p)]) {
           var tg = assignments[points.indexOf(p)];
           p.x = lerp(p.x, lerp(p.x, cx, 0.08), t);
           p.y = lerp(p.y, lerp(p.y, cy, 0.08), t);
@@ -561,15 +577,18 @@
     function step() {
       var elapsed = performance.now() - startTime;
       var t = Math.min(1, elapsed / MORPH_MS);
-      t = easeInOutCubic(t);
+      var tGlobal = easeInOutCubic(t);
       points.forEach(function (p) {
-        if (p.morphRole === 'structure') {
+        if ((p.morphRole === 'contour' || p.morphRole === 'interior')) {
           var idx = points.indexOf(p);
           var tg = assignments[idx];
           if (tg) {
-            p.x = lerp(p.x, tg.x, t);
-            p.y = lerp(p.y, tg.y, t);
-            p.z = lerp(p.z, tg.z, t);
+            var tAnim = p.morphRole === 'contour'
+              ? easeInOutCubic(Math.min(1, t * 1.5))
+              : easeInOutCubic(Math.max(0, (t - 0.2) / 0.8));
+            p.x = lerp(p.x, tg.x, tAnim);
+            p.y = lerp(p.y, tg.y, tAnim);
+            p.z = lerp(p.z, tg.z, tAnim);
           }
         }
       });
@@ -624,7 +643,7 @@
       for (var i = 0; i < points.length; i++) {
         var p = points[i];
         var a = anchors[i];
-        if (p.morphRole === 'structure') {
+        if ((p.morphRole === 'contour' || p.morphRole === 'interior')) {
           p.x = lerp(p.x, a.x, t);
           p.y = lerp(p.y, a.y, t);
           p.z = lerp(p.z, a.z, t);
