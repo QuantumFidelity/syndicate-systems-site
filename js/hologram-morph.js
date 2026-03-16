@@ -14,7 +14,7 @@
   var CLUSTER_BUST_INTERVAL = 180;
   var CLUSTER_DENSITY_THRESHOLD = 0.32;
   var POINT_COUNT = 750;
-  var CONTOUR_RATIO = 0.42, INTERIOR_RATIO = 0.38, AMBIENT_RATIO = 0.2;
+  var CONTOUR_RATIO = 0.5, INTERIOR_RATIO = 0.35, AMBIENT_RATIO = 0.15;
   var STRUCTURE_RATIO = CONTOUR_RATIO + INTERIOR_RATIO;
   var K_EDGES_IDLE = 1, K_EDGES_RESOLVED = 2, EDGE_DISTANCE_THRESHOLD = 55;
   var POINT_RADIUS = 2.0, AMBIENT_OPACITY = 0.18, AMBIENT_POINT_SCALE = 0.65;
@@ -70,13 +70,19 @@
           }
         }
       }
-      var nLen = 20, nRad = 14;
-      var x0 = -0.48, x1 = 0.44;
+      /* 1. FUSELAGE — full length, pointed nose, shoulder bulge, engine-body rear, seq 0 */
+      var nLen = 28, nRad = 14;
+      var x0 = -0.5, x1 = 0.49;
       for (var ul = 0; ul < nLen; ul++) {
         var t = ul / (nLen - 1);
         var x = x0 + t * (x1 - x0);
-        var r = 0.008 + 0.05 * Math.sin(t * Math.PI) * (t < 0.12 ? t / 0.12 : (t > 0.82 ? (1 - t) / 0.18 : 1));
-        if (t > 0.22 && t < 0.38) r *= 1.18;
+        var rBase = Math.sin(t * Math.PI);
+        var nose = t < 0.06 ? t / 0.06 : 1;
+        var tail = t > 0.88 ? (1 - t) / 0.12 : 1;
+        var r = 0.006 + 0.062 * rBase * nose * tail;
+        if (t > 0.12 && t < 0.55) r *= (1 + 0.38 * Math.sin((t - 0.33) * 5));
+        if (t > 0.5 && t < 0.82) r *= 1.12;
+        if (t > 0.82 && t < 0.96) r *= (0.85 + 0.15 * (1 - (t - 0.82) / 0.14));
         for (var th = 0; th < nRad; th++) {
           var theta = (th / nRad) * Math.PI * 2;
           var y = r * Math.cos(theta);
@@ -85,77 +91,122 @@
         }
       }
       gridEdges(0, nRad, nLen);
-      var fuseEnd = idx;
-      var nSpan = 14, nChord = 9;
-      var sweep = 26 * Math.PI / 180;
+      /* 2. CANOPY — raised upper fuselage bubble, visible in top-down, seq 0.08 */
+      var nCU = 7, nCV = 6;
+      var canopyStart = idx;
+      for (var v = 0; v < nCV; v++) {
+        for (var u = 0; u < nCU; u++) {
+          var su = u / (nCU - 1), sv = v / (nCV - 1);
+          var cx = -0.30 + su * 0.18;
+          var cy = 0.055 * Math.sin(su * Math.PI) * (0.45 + 0.55 * (1 - sv));
+          var cz = 0.042 + 0.045 * Math.sin(su * Math.PI) * Math.sin(sv * Math.PI);
+          pt(cx, cy, cz, 'canopy', 0.08);
+        }
+      }
+      gridEdges(canopyStart, nCU, nCV);
+      /* 3. LERX / SHOULDER — broad leading-edge root, wide shoulder, seq 0.1 */
+      var nLerxU = 8, nLerxV = 8;
+      for (var side = 0; side < 2; side++) {
+        var sgn = side === 0 ? 1 : -1;
+        var lStart = idx;
+        for (var v = 0; v < nLerxV; v++) {
+          for (var u = 0; u < nLerxU; u++) {
+            var su = u / (nLerxU - 1), sv = v / (nLerxV - 1);
+            var lx = -0.32 + su * 0.30 + sv * 0.04;
+            var ly = sgn * (0.055 + 0.22 * sv + 0.10 * Math.sin(su * Math.PI));
+            var lz = 0.012 + 0.04 * sv;
+            pt(lx, ly, lz, 'lerx', 0.1);
+          }
+        }
+        gridEdges(lStart, nLerxU, nLerxV);
+      }
+      /* 4. WINGS — mid-body attachment, swept, Hornet planform, seq 0.15 */
+      var nSpan = 18, nChord = 12;
+      var sweep = 28 * Math.PI / 180;
       var dihedral = 5 * Math.PI / 180;
+      var wingRootX = -0.28;
+      var wingSpanX = 0.36;
       for (var side = 0; side < 2; side++) {
         var sgn = side === 0 ? 1 : -1;
         var wingStart = idx;
         for (var v = 0; v < nChord; v++) {
           for (var u = 0; u < nSpan; u++) {
             var su = u / (nSpan - 1), sv = v / (nChord - 1);
-            var span = 0.06 + su * 0.14;
-            var chord = 0.065 * (1 - sv * 0.45);
-            var x = -0.04 + su * 0.34 - chord * Math.cos(sweep) * 0.5;
+            var span = 0.048 + su * 0.16;
+            var chordRoot = 0.092;
+            var chordTip = 0.045;
+            var chord = chordRoot + sv * (chordTip - chordRoot);
+            var leX = wingRootX + su * wingSpanX - chord * Math.cos(sweep);
             var y = sgn * (span * Math.cos(dihedral));
-            var z = span * Math.sin(dihedral) + 0.012 * sv;
-            pt(x, y, z, 'wing', 0.15);
+            var z = span * Math.sin(dihedral) + 0.014 * sv;
+            pt(leX, y, z, 'wing', 0.15);
           }
         }
         gridEdges(wingStart, nSpan, nChord);
       }
-      var wingEnd = idx;
-      var nVSpan = 7, nVChord = 6;
+      /* 5. REAR FUSELAGE / ENGINE BODY — continuous aft, muscular taper, seq 0.18 */
+      var nRearU = 10, nRearV = 14;
+      var rearStart = idx;
+      var fuseBridgeRing = 22;
+      var fuselageBridgeStart = fuseBridgeRing * nRad;
+      for (var v = 0; v < nRearV; v++) {
+        for (var u = 0; u < nRearU; u++) {
+          var su = u / (nRearU - 1), sv = v / (nRearV - 1);
+          var theta = (v / nRearV) * Math.PI * 2;
+          var x = 0.38 + su * 0.12;
+          var r = 0.045 * (1 - su * 0.6) * (0.72 + 0.28 * Math.cos(theta));
+          var ry = r * Math.cos(theta);
+          var rz = r * Math.sin(theta) - 0.015 * su;
+          pt(x, ry, rz, 'rearFuse', 0.18);
+        }
+      }
+      gridEdges(rearStart, nRearU, nRearV);
+      for (var th = 0; th < nRad && th < nRearV; th++) {
+        var j = th % nRearV;
+        jetEdges.push([fuselageBridgeStart + th, rearStart + j]);
+      }
+      for (var th = 0; th < nRad && th < nRearV; th++) {
+        var j = th % nRearV;
+        jetEdges.push([(nLen - 1) * nRad + th, rearStart + (nRearU - 1) * nRearV + j]);
+      }
+      /* 6. TWIN VERTICAL TAILS — large, prominent, outward cant, seq 0.22 */
+      var nVSpan = 11, nVChord = 9;
+      var vTailCant = 15 * Math.PI / 180;
       for (var side = 0; side < 2; side++) {
         var sgn = side === 0 ? 1 : -1;
         var vStart = idx;
         for (var v = 0; v < nVChord; v++) {
           for (var u = 0; u < nVSpan; u++) {
             var su = u / (nVSpan - 1), sv = v / (nVChord - 1);
-            var h = 0.04 + su * 0.07;
-            var c = 0.028 * (1 - sv * 0.35);
-            var cant = 12 * Math.PI / 180;
-            var x = 0.32 + su * 0.11 - c * 0.5;
-            var y = sgn * (0.05 * Math.cos(cant) + h * Math.sin(cant));
-            var z = -0.04 - su * 0.02 + h * Math.cos(cant) * 0.3;
-            pt(x, y, z, 'vertTail', 0.2);
+            var h = 0.04 + su * 0.14;
+            var c = 0.048 * (1 - sv * 0.3);
+            var x = 0.34 + su * 0.12 - c * 0.5;
+            var y = sgn * (0.082 * Math.cos(vTailCant) + h * Math.sin(vTailCant));
+            var z = -0.05 - su * 0.018 + h * Math.cos(vTailCant) * 0.42;
+            pt(x, y, z, 'vertTail', 0.22);
           }
         }
         gridEdges(vStart, nVSpan, nVChord);
       }
-      var vertEnd = idx;
-      var nHSpan = 7, nHChord = 6;
+      /* 7. HORIZONTAL STABILIZERS — behind wings, readable, seq 0.25 */
+      var nHSpan = 10, nHChord = 8;
       for (var side = 0; side < 2; side++) {
         var sgn = side === 0 ? 1 : -1;
         var hStart = idx;
         for (var v = 0; v < nHChord; v++) {
           for (var u = 0; u < nHSpan; u++) {
             var su = u / (nHSpan - 1), sv = v / (nHChord - 1);
-            var span = 0.025 + su * 0.055;
-            var chord = 0.024 * (1 - sv * 0.4);
-            var x = 0.24 + su * 0.2 - chord * 0.5;
+            var span = 0.035 + su * 0.07;
+            var chord = 0.036 * (1 - sv * 0.38);
+            var x = 0.26 + su * 0.22 - chord * 0.5;
             var y = sgn * span;
-            var z = -0.055 - su * 0.015;
-            pt(x, y, z, 'horizTail', 0.22);
+            var z = -0.058 - su * 0.016;
+            pt(x, y, z, 'horizTail', 0.25);
           }
         }
         gridEdges(hStart, nHSpan, nHChord);
       }
-      var horizEnd = idx;
-      var nCU = 5, nCV = 4;
-      var canopyStart = idx;
-      for (var v = 0; v < nCV; v++) {
-        for (var u = 0; u < nCU; u++) {
-          var su = u / (nCU - 1), sv = v / (nCV - 1);
-          var cx = -0.26 + su * 0.12;
-          var cy = 0.038 * Math.sin(su * Math.PI) * (0.3 + 0.7 * (1 - sv));
-          var cz = 0.045 + 0.025 * Math.sin(su * Math.PI) * Math.sin(sv * Math.PI);
-          pt(cx, cy, cz, 'canopy', 0.1);
-        }
-      }
-      gridEdges(canopyStart, nCU, nCV);
-      interior = contour.slice(0, Math.floor(contour.length * 0.48));
+      interior = contour.slice(0, Math.floor(contour.length * 0.45));
       var n = contour.length;
       return { contour: contour, interior: interior, jetEdges: jetEdges, jetContourCount: n, isJet: true };
     }
@@ -735,15 +786,20 @@
       var opacity, sizeMult;
       if (pt.morphRole === 'ambient') {
         var jetHold = currentShape === 'jet' && (state === STATE.STRUCTURED || state === STATE.SETTLING);
-        opacity = jetHold ? AMBIENT_OPACITY * 0.28 : ((state === STATE.STRUCTURED || state === STATE.SETTLING) ? AMBIENT_OPACITY * 0.65 : AMBIENT_OPACITY * 0.9);
-        sizeMult = jetHold ? AMBIENT_POINT_SCALE * 0.45 : AMBIENT_POINT_SCALE * (0.7 + 0.25 * df);
+        opacity = jetHold ? AMBIENT_OPACITY * 0.06 : ((state === STATE.STRUCTURED || state === STATE.SETTLING) ? AMBIENT_OPACITY * 0.65 : AMBIENT_OPACITY * 0.9);
+        sizeMult = jetHold ? AMBIENT_POINT_SCALE * 0.28 : AMBIENT_POINT_SCALE * (0.7 + 0.25 * df);
       } else if (currentShape === 'globe' && (state === STATE.STRUCTURED || state === STATE.SETTLING)) {
         opacity = 0.16 + 0.52 * df;
         sizeMult = 0.7 + 0.6 * df;
       } else if (currentShape === 'jet' && (state === STATE.STRUCTURED || state === STATE.SETTLING)) {
-        var fwd = 0.5 - (pt.ax || 0) * 0.4;
-        opacity = 0.18 + 0.5 * df * fwd;
-        sizeMult = 0.74 + 0.58 * df * fwd;
+        if (pt.morphRole === 'interior' && pt.jetContourIdx == null) {
+          opacity = 0.02;
+          sizeMult = 0.2;
+        } else {
+          var fwd = 0.5 - (pt.ax || 0) * 0.4;
+          opacity = 0.18 + 0.5 * df * fwd;
+          sizeMult = 0.74 + 0.58 * df * fwd;
+        }
       } else {
         opacity = 0.22 + 0.32 * df;
         sizeMult = 0.8 + 0.4 * df;
