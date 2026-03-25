@@ -35,6 +35,9 @@
   var GLOBE_SHELL_RADIUS = 0.4;
   var GLOBE_ROT_SPEED = 0.32;
   var GLOBE_INTERIOR_MAX_R = 0.28;
+  var TORUS_MAJOR_R = 0.28;
+  var TORUS_MINOR_R = 0.11;
+  var TORUS_ROT_SPEED = 0.22;
   var clusterBustCounter = 0;
   var quadrantCounts = [0, 0, 0, 0];
 
@@ -53,162 +56,43 @@
   }
 
   var shapeLibrary = (function () {
-    function jetPoints() {
+    function torusPoints() {
       var contour = [], interior = [];
-      var jetEdges = [];
+      var torusEdges = [];
       var idx = 0;
       function pt(x, y, z, part, seq) {
-        contour.push({ x: x, y: y, z: z || 0, jetPart: part, jetSeq: seq, jetIdx: idx });
+        contour.push({ x: x, y: y, z: z || 0, torusPart: part, torusSeq: seq, torusIdx: idx });
         return idx++;
       }
-      function gridEdges(start, nU, nV) {
-        for (var v = 0; v < nV; v++) {
-          for (var u = 0; u < nU; u++) {
-            var i = start + v * nU + u;
-            if (u < nU - 1) jetEdges.push([i, i + 1]);
-            if (v < nV - 1) jetEdges.push([i, i + nU]);
-          }
+      var R = TORUS_MAJOR_R, r = TORUS_MINOR_R;
+      var nU = 24, nV = 14;
+      function addTorusEdgeOnce(a, b) {
+        var key = a < b ? a + ',' + b : b + ',' + a;
+        if (!seen[key]) { seen[key] = true; torusEdges.push([a, b]); }
+      }
+      var seen = {};
+      for (var v = 0; v < nV; v++) {
+        for (var u = 0; u < nU; u++) {
+          var i = v * nU + u;
+          var nextU = (u + 1) % nU;
+          var nextV = (v + 1) % nV;
+          addTorusEdgeOnce(i, v * nU + nextU);
+          addTorusEdgeOnce(i, nextV * nU + u);
         }
       }
-      /* 1. FUSELAGE — full length, pointed nose, shoulder bulge, engine-body rear, seq 0 */
-      var nLen = 28, nRad = 14;
-      var x0 = -0.5, x1 = 0.49;
-      for (var ul = 0; ul < nLen; ul++) {
-        var t = ul / (nLen - 1);
-        var x = x0 + t * (x1 - x0);
-        var rBase = Math.sin(t * Math.PI);
-        var nose = t < 0.06 ? t / 0.06 : 1;
-        var tail = t > 0.88 ? (1 - t) / 0.12 : 1;
-        var r = 0.006 + 0.062 * rBase * nose * tail;
-        if (t > 0.12 && t < 0.55) r *= (1 + 0.38 * Math.sin((t - 0.33) * 5));
-        if (t > 0.5 && t < 0.82) r *= 1.12;
-        if (t > 0.82 && t < 0.96) r *= (0.85 + 0.15 * (1 - (t - 0.82) / 0.14));
-        for (var th = 0; th < nRad; th++) {
-          var theta = (th / nRad) * Math.PI * 2;
-          var y = r * Math.cos(theta);
-          var z = r * Math.sin(theta);
-          pt(x, y, z, 'fuselage', 0);
+      for (var v = 0; v < nV; v++) {
+        for (var u = 0; u < nU; u++) {
+          var theta = (u / nU) * Math.PI * 2;
+          var phi = (v / nV) * Math.PI * 2;
+          var x = (R + r * Math.cos(phi)) * Math.cos(theta);
+          var y = (R + r * Math.cos(phi)) * Math.sin(theta);
+          var z = r * Math.sin(phi);
+          pt(x, y, z, 'torus', 0);
         }
       }
-      gridEdges(0, nRad, nLen);
-      /* 2. CANOPY — raised upper fuselage bubble, visible in top-down, seq 0.08 */
-      var nCU = 7, nCV = 6;
-      var canopyStart = idx;
-      for (var v = 0; v < nCV; v++) {
-        for (var u = 0; u < nCU; u++) {
-          var su = u / (nCU - 1), sv = v / (nCV - 1);
-          var cx = -0.30 + su * 0.18;
-          var cy = 0.055 * Math.sin(su * Math.PI) * (0.45 + 0.55 * (1 - sv));
-          var cz = 0.042 + 0.045 * Math.sin(su * Math.PI) * Math.sin(sv * Math.PI);
-          pt(cx, cy, cz, 'canopy', 0.08);
-        }
-      }
-      gridEdges(canopyStart, nCU, nCV);
-      /* 3. LERX / SHOULDER — broad leading-edge root, wide shoulder, seq 0.1 */
-      var nLerxU = 8, nLerxV = 8;
-      for (var side = 0; side < 2; side++) {
-        var sgn = side === 0 ? 1 : -1;
-        var lStart = idx;
-        for (var v = 0; v < nLerxV; v++) {
-          for (var u = 0; u < nLerxU; u++) {
-            var su = u / (nLerxU - 1), sv = v / (nLerxV - 1);
-            var lx = -0.32 + su * 0.30 + sv * 0.04;
-            var ly = sgn * (0.055 + 0.22 * sv + 0.10 * Math.sin(su * Math.PI));
-            var lz = 0.012 + 0.04 * sv;
-            pt(lx, ly, lz, 'lerx', 0.1);
-          }
-        }
-        gridEdges(lStart, nLerxU, nLerxV);
-      }
-      /* 4. WINGS — mid-body attachment, swept, Hornet planform, seq 0.15 */
-      var nSpan = 18, nChord = 12;
-      var sweep = 28 * Math.PI / 180;
-      var dihedral = 5 * Math.PI / 180;
-      var wingRootX = -0.28;
-      var wingSpanX = 0.36;
-      for (var side = 0; side < 2; side++) {
-        var sgn = side === 0 ? 1 : -1;
-        var wingStart = idx;
-        for (var v = 0; v < nChord; v++) {
-          for (var u = 0; u < nSpan; u++) {
-            var su = u / (nSpan - 1), sv = v / (nChord - 1);
-            var span = 0.048 + su * 0.16;
-            var chordRoot = 0.092;
-            var chordTip = 0.045;
-            var chord = chordRoot + sv * (chordTip - chordRoot);
-            var leX = wingRootX + su * wingSpanX - chord * Math.cos(sweep);
-            var y = sgn * (span * Math.cos(dihedral));
-            var z = span * Math.sin(dihedral) + 0.014 * sv;
-            pt(leX, y, z, 'wing', 0.15);
-          }
-        }
-        gridEdges(wingStart, nSpan, nChord);
-      }
-      /* 5. REAR FUSELAGE / ENGINE BODY — continuous aft, muscular taper, seq 0.18 */
-      var nRearU = 10, nRearV = 14;
-      var rearStart = idx;
-      var fuseBridgeRing = 22;
-      var fuselageBridgeStart = fuseBridgeRing * nRad;
-      for (var v = 0; v < nRearV; v++) {
-        for (var u = 0; u < nRearU; u++) {
-          var su = u / (nRearU - 1), sv = v / (nRearV - 1);
-          var theta = (v / nRearV) * Math.PI * 2;
-          var x = 0.38 + su * 0.12;
-          var r = 0.045 * (1 - su * 0.6) * (0.72 + 0.28 * Math.cos(theta));
-          var ry = r * Math.cos(theta);
-          var rz = r * Math.sin(theta) - 0.015 * su;
-          pt(x, ry, rz, 'rearFuse', 0.18);
-        }
-      }
-      gridEdges(rearStart, nRearU, nRearV);
-      for (var th = 0; th < nRad && th < nRearV; th++) {
-        var j = th % nRearV;
-        jetEdges.push([fuselageBridgeStart + th, rearStart + j]);
-      }
-      for (var th = 0; th < nRad && th < nRearV; th++) {
-        var j = th % nRearV;
-        jetEdges.push([(nLen - 1) * nRad + th, rearStart + (nRearU - 1) * nRearV + j]);
-      }
-      /* 6. TWIN VERTICAL TAILS — large, prominent, outward cant, seq 0.22 */
-      var nVSpan = 11, nVChord = 9;
-      var vTailCant = 15 * Math.PI / 180;
-      for (var side = 0; side < 2; side++) {
-        var sgn = side === 0 ? 1 : -1;
-        var vStart = idx;
-        for (var v = 0; v < nVChord; v++) {
-          for (var u = 0; u < nVSpan; u++) {
-            var su = u / (nVSpan - 1), sv = v / (nVChord - 1);
-            var h = 0.04 + su * 0.14;
-            var c = 0.048 * (1 - sv * 0.3);
-            var x = 0.34 + su * 0.12 - c * 0.5;
-            var y = sgn * (0.082 * Math.cos(vTailCant) + h * Math.sin(vTailCant));
-            var z = -0.05 - su * 0.018 + h * Math.cos(vTailCant) * 0.42;
-            pt(x, y, z, 'vertTail', 0.22);
-          }
-        }
-        gridEdges(vStart, nVSpan, nVChord);
-      }
-      /* 7. HORIZONTAL STABILIZERS — behind wings, readable, seq 0.25 */
-      var nHSpan = 10, nHChord = 8;
-      for (var side = 0; side < 2; side++) {
-        var sgn = side === 0 ? 1 : -1;
-        var hStart = idx;
-        for (var v = 0; v < nHChord; v++) {
-          for (var u = 0; u < nHSpan; u++) {
-            var su = u / (nHSpan - 1), sv = v / (nHChord - 1);
-            var span = 0.035 + su * 0.07;
-            var chord = 0.036 * (1 - sv * 0.38);
-            var x = 0.26 + su * 0.22 - chord * 0.5;
-            var y = sgn * span;
-            var z = -0.058 - su * 0.016;
-            pt(x, y, z, 'horizTail', 0.25);
-          }
-        }
-        gridEdges(hStart, nHSpan, nHChord);
-      }
-      interior = contour.slice(0, Math.floor(contour.length * 0.45));
+      interior = contour.slice(0, Math.floor(contour.length * 0.4));
       var n = contour.length;
-      return { contour: contour, interior: interior, jetEdges: jetEdges, jetContourCount: n, isJet: true };
+      return { contour: contour, interior: interior, torusEdges: torusEdges, torusContourCount: n, isTorus: true };
     }
     function globePoints() {
       var contour = [], interior = [];
@@ -262,67 +146,95 @@
     }
     function turbinePoints() {
       var contour = [], interior = [];
-      for (var i = 0; i < 24; i++) {
-        var a = (i / 24) * Math.PI * 2;
-        contour.push({ x: 0.05 * Math.cos(a), y: 0.05 * Math.sin(a), z: 0 });
-      }
-      for (var b = 0; b < 16; b++) {
-        var angle = (b / 16) * Math.PI * 2;
-        for (var s = 0; s < 10; s++) {
-          var rad = 0.06 + (s / 9) * 0.3;
-          contour.push({ x: rad * Math.cos(angle), y: rad * Math.sin(angle), z: 0.01 * (s % 2) });
+      var turbineEdges = [];
+      var ptsPerLoop = 36;
+      var scale = 0.48;
+      var zDepth = 0.025;
+      function addLoop(baseIdx, n) {
+        for (var i = 0; i < n; i++) {
+          var next = (i + 1) % n;
+          turbineEdges.push([baseIdx + i, baseIdx + next]);
         }
       }
-      for (var r = 0.08; r <= 0.36; r += 0.07) {
-        for (var i = 0; i < 20; i++) {
-          var a = (i / 20) * Math.PI * 2;
-          contour.push({ x: r * Math.cos(a), y: r * Math.sin(a), z: 0.02 });
+      function hypotrochoid(R, r, d, theta) {
+        var k = (R - r) / r;
+        return {
+          x: (R - r) * Math.cos(theta) + d * Math.cos(k * theta),
+          y: (R - r) * Math.sin(theta) - d * Math.sin(k * theta)
+        };
+      }
+      var idx = 0;
+      var nRotations = 10;
+      var R = 11, r = 1, d = 6;
+      for (var rot = 0; rot < nRotations; rot++) {
+        var rotAngle = (rot / nRotations) * Math.PI * 2;
+        var base = idx;
+        for (var i = 0; i < ptsPerLoop; i++) {
+          var theta = (i / ptsPerLoop) * Math.PI * 2;
+          var pt = hypotrochoid(R, r, d, theta);
+          var norm = Math.sqrt(pt.x * pt.x + pt.y * pt.y) / (R - r + d);
+          var x = (pt.x * Math.cos(rotAngle) - pt.y * Math.sin(rotAngle)) / (R - r + d) * scale;
+          var y = (pt.x * Math.sin(rotAngle) + pt.y * Math.cos(rotAngle)) / (R - r + d) * scale;
+          var z = (norm * norm - 0.5) * zDepth;
+          contour.push({ x: x, y: y, z: z, turbineContourIdx: idx });
+          idx++;
         }
+        addLoop(base, ptsPerLoop);
       }
-      for (var i = 0; i < 28; i++) {
-        var a = (i / 28) * Math.PI * 2;
-        contour.push({ x: 0.38 * Math.cos(a), y: 0.38 * Math.sin(a), z: 0.025 });
+      for (var i = 0; i < contour.length; i++) {
+        var pt = contour[i];
+        var r = Math.sqrt(pt.x * pt.x + pt.y * pt.y);
+        if (r > scale * 0.22) interior.push({ x: pt.x, y: pt.y, z: pt.z });
       }
-      for (var b = 0; b < 8; b++) {
-        var angle = (b / 8) * Math.PI * 2 + 0.02;
-        for (var s = 1; s < 6; s++) {
-          var rad = 0.12 + (s / 5) * 0.22;
-          interior.push({ x: rad * Math.cos(angle), y: rad * Math.sin(angle), z: 0.008 });
-        }
-      }
-      interior.push({ x: 0, y: 0, z: 0 });
-      return { contour: contour, interior: interior };
+      var n = contour.length;
+      return { contour: contour, interior: interior, turbineEdges: turbineEdges, turbineContourCount: n };
+    }
+    function dipoleZ(u, v) {
+      return u * Math.exp(-(u * u + v * v));
     }
     function geometryPoints() {
       var contour = [], interior = [];
-      for (var row = 0; row < 11; row++) {
-        for (var col = 0; col < 11; col++) {
-          var u = (col / 10) * 0.76 - 0.38;
-          var v = (row / 10) * 0.76 - 0.38;
-          var warp = Math.sin(row * 0.7) * Math.cos(col * 0.7) * 0.02;
-          var pt = { x: u + warp, y: v - warp * 0.5, z: Math.sin(row * 0.5) * Math.cos(col * 0.5) * 0.08 };
-          if (row === 0 || row === 10 || col === 0 || col === 10) contour.push(pt);
-          else interior.push(pt);
+      var geometryEdges = [];
+      var nU = 25, nV = 15;
+      var uMin = -2.2, uMax = 2.2, vMin = -1.4, vMax = 1.4;
+      var scaleZ = 0.2;
+      var extentH = 1.02, extentV = 0.88;
+      var idx = 0;
+      for (var vi = 0; vi < nV; vi++) {
+        for (var ui = 0; ui < nU; ui++) {
+          var u = uMin + (ui / (nU - 1)) * (uMax - uMin);
+          var v = vMin + (vi / (nV - 1)) * (vMax - vMin);
+          var z = dipoleZ(u, v);
+          var x = ((u - uMin) / (uMax - uMin) - 0.5) * extentH;
+          var y = ((v - vMin) / (vMax - vMin) - 0.5) * extentV;
+          contour.push({
+            x: x, y: y, z: z * scaleZ,
+            geometryContourIdx: idx,
+            geometryParamU: u, geometryParamV: v
+          });
+          if (ui < nU - 1) geometryEdges.push([idx, idx + 1]);
+          if (vi < nV - 1) geometryEdges.push([idx, idx + nU]);
+          idx++;
         }
       }
-      for (var i = 0; i < 12; i++) {
-        var a = (i / 12) * Math.PI * 2;
-        for (var r = 0; r < 6; r++) {
-          var rad = 0.12 + (r / 5) * 0.24;
-          contour.push({ x: rad * Math.cos(a), y: rad * Math.sin(a), z: 0.02 * (i % 2) });
+      for (var vi = 1; vi < nV - 1; vi++) {
+        for (var ui = 1; ui < nU - 1; ui++) {
+          var u = uMin + (ui / (nU - 1)) * (uMax - uMin);
+          var v = vMin + (vi / (nV - 1)) * (vMax - vMin);
+          var z = dipoleZ(u, v);
+          var x = ((u - uMin) / (uMax - uMin) - 0.5) * extentH;
+          var y = ((v - vMin) / (vMax - vMin) - 0.5) * extentV;
+          interior.push({
+            x: x, y: y, z: z * scaleZ,
+            geometryParamU: u, geometryParamV: v
+          });
         }
       }
-      for (var i = 0; i < 8; i++) {
-        var cx = 0.26 * Math.cos((i / 8) * Math.PI * 2);
-        var cy = 0.26 * Math.sin((i / 8) * Math.PI * 2);
-        for (var j = 0; j < 5; j++) {
-          interior.push({ x: cx + (j - 2) * 0.05, y: cy, z: 0.015 });
-        }
-      }
-      return { contour: contour, interior: interior };
+      var n = contour.length;
+      return { contour: contour, interior: interior, geometryEdges: geometryEdges, geometryContourCount: n };
     }
     return {
-      jet: jetPoints(),
+      torus: torusPoints(),
       globe: globePoints(),
       turbine: turbinePoints(),
       geometry: geometryPoints()
@@ -607,17 +519,17 @@
           }
         }
       }
-    } else if (currentShape === 'jet' && structured) {
+    } else if (currentShape === 'torus' && structured) {
       var ptIdxToProj = {};
       for (var i = 0; i < projected.length; i++) ptIdxToProj[projected[i].idx] = i;
       var contourIdxToPtIdx = {};
       for (var i = 0; i < points.length; i++) {
-        var ci = points[i].jetContourIdx;
+        var ci = points[i].torusContourIdx;
         if (ci != null && contourIdxToPtIdx[ci] == null) contourIdxToPtIdx[ci] = i;
       }
-      var jetData = shapeLibrary.jet;
-      var jetEdgeList = (jetData && jetData.jetEdges) ? jetData.jetEdges : [];
-      function addJetEdge(ci, cj) {
+      var torusData = shapeLibrary.torus;
+      var torusEdgeList = (torusData && torusData.torusEdges) ? torusData.torusEdges : [];
+      function addTorusEdge(ci, cj) {
         var pi = contourIdxToPtIdx[ci], pj = contourIdxToPtIdx[cj];
         if (pi == null || pj == null) return;
         var ia = ptIdxToProj[pi], ib = ptIdxToProj[pj];
@@ -625,12 +537,111 @@
         var key = ia < ib ? ia + '|' + ib : ib + '|' + ia;
         edgeSet[key] = true;
       }
-      for (var e = 0; e < jetEdgeList.length; e++) {
-        var pair = jetEdgeList[e];
-        var jetN = (jetData && jetData.jetContourCount != null) ? jetData.jetContourCount : 500;
-        if (pair[0] >= 0 && pair[0] < jetN && pair[1] >= 0 && pair[1] < jetN) addJetEdge(pair[0], pair[1]);
+      for (var e = 0; e < torusEdgeList.length; e++) {
+        var pair = torusEdgeList[e];
+        var torusN = (torusData && torusData.torusContourCount != null) ? torusData.torusContourCount : 500;
+        if (pair[0] >= 0 && pair[0] < torusN && pair[1] >= 0 && pair[1] < torusN) addTorusEdge(pair[0], pair[1]);
       }
-      /* Jet hold: no k-NN edges for interior or ambient — aircraft silhouette only */
+      for (var i = 0; i < projected.length; i++) {
+        var pti = points[projected[i].idx];
+        if (!pti) continue;
+        if (pti.morphRole === 'ambient' || (pti.morphRole === 'interior' && pti.torusContourIdx == null)) {
+          var sorted = [];
+          for (var j = 0; j < projected.length; j++) {
+            if (i === j) continue;
+            var d = dist2(projected[i], projected[j]);
+            if (d < EDGE_DISTANCE_THRESHOLD) sorted.push({ j: j, d: d * d });
+          }
+          sorted.sort(function (a, b) { return a.d - b.d; });
+          for (var n = 0; n < 2 && n < sorted.length; n++) {
+            var j = sorted[n].j;
+            var key = i < j ? i + '|' + j : j + '|' + i;
+            edgeSet[key] = true;
+          }
+        }
+      }
+    } else if (currentShape === 'turbine' && structured) {
+      var ptIdxToProjT = {};
+      for (var i = 0; i < projected.length; i++) ptIdxToProjT[projected[i].idx] = i;
+      var contourIdxToPtIdxT = {};
+      for (var i = 0; i < points.length; i++) {
+        var ci = points[i].turbineContourIdx;
+        if (ci != null && contourIdxToPtIdxT[ci] == null) contourIdxToPtIdxT[ci] = i;
+      }
+      var turbineData = shapeLibrary.turbine;
+      var turbineEdgeList = (turbineData && turbineData.turbineEdges) ? turbineData.turbineEdges : [];
+      function addTurbineEdge(ci, cj) {
+        var pi = contourIdxToPtIdxT[ci], pj = contourIdxToPtIdxT[cj];
+        if (pi == null || pj == null) return;
+        var ia = ptIdxToProjT[pi], ib = ptIdxToProjT[pj];
+        if (ia == null || ib == null) return;
+        var key = ia < ib ? ia + '|' + ib : ib + '|' + ia;
+        edgeSet[key] = true;
+      }
+      for (var e = 0; e < turbineEdgeList.length; e++) {
+        var pair = turbineEdgeList[e];
+        var turbineN = (turbineData && turbineData.turbineContourCount != null) ? turbineData.turbineContourCount : 1000;
+        if (pair[0] >= 0 && pair[0] < turbineN && pair[1] >= 0 && pair[1] < turbineN) addTurbineEdge(pair[0], pair[1]);
+      }
+      for (var i = 0; i < projected.length; i++) {
+        var pti = points[projected[i].idx];
+        if (!pti) continue;
+        if (pti.morphRole === 'ambient' || (pti.morphRole === 'interior' && pti.turbineContourIdx == null)) {
+          var sorted = [];
+          for (var j = 0; j < projected.length; j++) {
+            if (i === j) continue;
+            var d = dist2(projected[i], projected[j]);
+            if (d < EDGE_DISTANCE_THRESHOLD) sorted.push({ j: j, d: d * d });
+          }
+          sorted.sort(function (a, b) { return a.d - b.d; });
+          for (var n = 0; n < 2 && n < sorted.length; n++) {
+            var j = sorted[n].j;
+            var key = i < j ? i + '|' + j : j + '|' + i;
+            edgeSet[key] = true;
+          }
+        }
+      }
+    } else if (currentShape === 'geometry' && structured) {
+      var ptIdxToProjG = {};
+      for (var i = 0; i < projected.length; i++) ptIdxToProjG[projected[i].idx] = i;
+      var contourIdxToPtIdxG = {};
+      for (var i = 0; i < points.length; i++) {
+        var ci = points[i].geometryContourIdx;
+        if (ci != null && contourIdxToPtIdxG[ci] == null) contourIdxToPtIdxG[ci] = i;
+      }
+      var geometryData = shapeLibrary.geometry;
+      var geometryEdgeList = (geometryData && geometryData.geometryEdges) ? geometryData.geometryEdges : [];
+      function addGeometryEdge(ci, cj) {
+        var pi = contourIdxToPtIdxG[ci], pj = contourIdxToPtIdxG[cj];
+        if (pi == null || pj == null) return;
+        var ia = ptIdxToProjG[pi], ib = ptIdxToProjG[pj];
+        if (ia == null || ib == null) return;
+        var key = ia < ib ? ia + '|' + ib : ib + '|' + ia;
+        edgeSet[key] = true;
+      }
+      for (var e = 0; e < geometryEdgeList.length; e++) {
+        var pair = geometryEdgeList[e];
+        var geometryN = (geometryData && geometryData.geometryContourCount != null) ? geometryData.geometryContourCount : 1000;
+        if (pair[0] >= 0 && pair[0] < geometryN && pair[1] >= 0 && pair[1] < geometryN) addGeometryEdge(pair[0], pair[1]);
+      }
+      for (var i = 0; i < projected.length; i++) {
+        var pti = points[projected[i].idx];
+        if (!pti) continue;
+        if (pti.morphRole === 'ambient') {
+          var sorted = [];
+          for (var j = 0; j < projected.length; j++) {
+            if (i === j) continue;
+            var d = dist2(projected[i], projected[j]);
+            if (d < EDGE_DISTANCE_THRESHOLD) sorted.push({ j: j, d: d * d });
+          }
+          sorted.sort(function (a, b) { return a.d - b.d; });
+          for (var n = 0; n < 2 && n < sorted.length; n++) {
+            var j = sorted[n].j;
+            var key = i < j ? i + '|' + j : j + '|' + i;
+            edgeSet[key] = true;
+          }
+        }
+      }
     } else {
       for (var i = 0; i < projected.length; i++) {
         var pi = projected[i];
@@ -669,7 +680,13 @@
         if (c.isEquator != null) t.isEquator = c.isEquator;
         if (c.isInterior != null) t.isInterior = c.isInterior;
         if (c.morphPhase != null) t.morphPhase = c.morphPhase;
-        if (c.jetPart != null) { t.jetPart = c.jetPart; t.jetSeq = c.jetSeq; t.jetIdx = c.jetIdx; t.jetContourIdx = idx; }
+        if (c.torusPart != null) { t.torusPart = c.torusPart; t.torusSeq = c.torusSeq; t.torusIdx = c.torusIdx; t.torusContourIdx = idx; }
+        if (shapeKey === 'turbine' && coords.turbineEdges) t.turbineContourIdx = idx;
+        if (shapeKey === 'geometry' && coords.geometryEdges) {
+          t.geometryContourIdx = idx;
+          t.geometryParamU = c.geometryParamU;
+          t.geometryParamV = c.geometryParamV;
+        }
         return t;
       });
       interiorTargets = (coords.interior || []).map(function (c) {
@@ -678,7 +695,8 @@
         if (c.lonIdx != null) t.lonIdx = c.lonIdx;
         if (c.isInterior != null) t.isInterior = c.isInterior;
         if (c.morphPhase != null) t.morphPhase = c.morphPhase;
-        if (c.jetPart != null) { t.jetPart = c.jetPart; t.jetSeq = c.jetSeq; t.jetIdx = c.jetIdx; }
+        if (c.torusPart != null) { t.torusPart = c.torusPart; t.torusSeq = c.torusSeq; t.torusIdx = c.torusIdx; }
+        if (shapeKey === 'geometry' && c.geometryParamU != null) { t.geometryParamU = c.geometryParamU; t.geometryParamV = c.geometryParamV; }
         return t;
       });
     } else if (Array.isArray(coords) && coords.length > 0) {
@@ -742,8 +760,13 @@
     ctx.fillRect(0, 0, W, H);
 
     var projected = [];
+    var isGlobeActive = currentShape === 'globe' && (state === STATE.STRUCTURED || state === STATE.SETTLING);
     for (var i = 0; i < points.length; i++) {
       var p = project(points[i]);
+      if (isGlobeActive) {
+        if (INNER_W > INNER_H) p.x *= INNER_H / INNER_W;
+        else if (INNER_H > INNER_W) p.y *= INNER_W / INNER_H;
+      }
       var s = toScreen(p);
       projected.push({ sx: s.sx, sy: s.sy, scale: s.scale, depth: s.depth, idx: i });
     }
@@ -761,7 +784,7 @@
       var op;
       if (isGlobeActive) {
         op = 0.12 + 0.5 * (midDepth + 0.5);
-      } else if (currentShape === 'jet' && (state === STATE.STRUCTURED || state === STATE.SETTLING)) {
+      } else if (currentShape === 'torus' && (state === STATE.STRUCTURED || state === STATE.SETTLING)) {
         op = 0.14 + 0.42 * (midDepth + 0.5);
       } else {
         op = baseEdgeOpacity * df;
@@ -785,20 +808,20 @@
       var df = (proj.depth + 0.5);
       var opacity, sizeMult;
       if (pt.morphRole === 'ambient') {
-        var jetHold = currentShape === 'jet' && (state === STATE.STRUCTURED || state === STATE.SETTLING);
-        opacity = jetHold ? AMBIENT_OPACITY * 0.06 : ((state === STATE.STRUCTURED || state === STATE.SETTLING) ? AMBIENT_OPACITY * 0.65 : AMBIENT_OPACITY * 0.9);
-        sizeMult = jetHold ? AMBIENT_POINT_SCALE * 0.28 : AMBIENT_POINT_SCALE * (0.7 + 0.25 * df);
+        var torusHold = currentShape === 'torus' && (state === STATE.STRUCTURED || state === STATE.SETTLING);
+        opacity = torusHold ? AMBIENT_OPACITY * 0.55 : ((state === STATE.STRUCTURED || state === STATE.SETTLING) ? AMBIENT_OPACITY * 0.65 : AMBIENT_OPACITY * 0.9);
+        sizeMult = torusHold ? AMBIENT_POINT_SCALE * (0.6 + 0.25 * df) : AMBIENT_POINT_SCALE * (0.7 + 0.25 * df);
       } else if (currentShape === 'globe' && (state === STATE.STRUCTURED || state === STATE.SETTLING)) {
         opacity = 0.16 + 0.52 * df;
         sizeMult = 0.7 + 0.6 * df;
-      } else if (currentShape === 'jet' && (state === STATE.STRUCTURED || state === STATE.SETTLING)) {
-        if (pt.morphRole === 'interior' && pt.jetContourIdx == null) {
+      } else if (currentShape === 'torus' && (state === STATE.STRUCTURED || state === STATE.SETTLING)) {
+        if (pt.morphRole === 'interior' && pt.torusContourIdx == null) {
           opacity = 0.02;
           sizeMult = 0.2;
         } else {
-          var fwd = 0.5 - (pt.ax || 0) * 0.4;
-          opacity = 0.18 + 0.5 * df * fwd;
-          sizeMult = 0.74 + 0.58 * df * fwd;
+          var depthBoost = 0.5 + (pt.az || 0) * 0.5;
+          opacity = 0.18 + 0.5 * df * depthBoost;
+          sizeMult = 0.74 + 0.58 * df * depthBoost;
         }
       } else {
         opacity = 0.22 + 0.32 * df;
@@ -814,15 +837,27 @@
 
   function applyStructureMotion() {
     var phase = time * 0.2;
-    if (currentShape === 'jet') {
-      var shimmer = Math.sin(time * 1.2 + 1) * 0.0004;
-      var sweep = Math.sin(time * 0.6 + 2) * 0.0003;
+    if (currentShape === 'torus') {
+      var torusRot = time * TORUS_ROT_SPEED;
+      var cy = Math.cos(torusRot), sy = Math.sin(torusRot);
+      var tilt = time * 0.12;
+      var ct = Math.cos(tilt), st = Math.sin(tilt);
       for (var i = 0; i < points.length; i++) {
         var p = points[i];
         if (p.morphRole === 'ambient') continue;
-        p.x = p.ax + shimmer * (1 - p.ax * 2);
-        p.y = p.ay + sweep * p.ay;
-        p.z = p.az + shimmer * 0.5;
+        var ax = p.ax, ay = p.ay, az = p.az;
+        var rx = ax * cy - az * sy;
+        var rz = ax * sy + az * cy;
+        var ry = ay;
+        var ryy = ry * ct - rz * st;
+        var rzz = ry * st + rz * ct;
+        p.x = rx;
+        p.y = ryy;
+        p.z = rzz;
+        var flow = Math.sin(time * 1.4 + p.phaseX) * 0.0003;
+        p.x += flow * rx;
+        p.y += flow * ryy;
+        p.z += flow * rzz;
       }
     } else if (currentShape === 'globe') {
       var globeRot = time * GLOBE_ROT_SPEED;
@@ -854,21 +889,33 @@
         }
       }
     } else if (currentShape === 'turbine') {
+      var turbineRot = time * TORUS_ROT_SPEED;
+      var cz = Math.cos(turbineRot), sz = Math.sin(turbineRot);
       for (var i = 0; i < points.length; i++) {
         var p = points[i];
         if (p.morphRole === 'ambient') continue;
-        var r = Math.sqrt(p.x * p.x + p.y * p.y);
-        if (r < 0.04) continue;
-        var a = Math.atan2(p.y, p.x);
-        p.x = r * Math.cos(a + phase * 0.012);
-        p.y = r * Math.sin(a + phase * 0.012);
+        var ax = p.ax, ay = p.ay;
+        p.x = ax * cz - ay * sz;
+        p.y = ax * sz + ay * cz;
       }
     } else if (currentShape === 'geometry') {
+      var wavePhase = time * 0.15;
+      var scaleZ = 0.2;
+      var cx = Math.sin(time * 0.2) * 0.15;
+      var cy = Math.cos(time * 0.17) * 0.1;
       for (var i = 0; i < points.length; i++) {
         var p = points[i];
         if (p.morphRole === 'ambient') continue;
-        var breath = Math.sin(time * 0.5 + p.x * 5 + p.y * 3) * STRUCTURE_MOTION_MAX;
-        p.z += breath;
+        if (p.geometryParamU != null && p.geometryParamV != null) {
+          var u = p.geometryParamU - cx;
+          var v = p.geometryParamV - cy;
+          var z = u * Math.exp(-(u * u + v * v));
+          var ripple = Math.sin(time * 0.5 + p.geometryParamU * 1.2 + p.geometryParamV * 0.8) * 0.04;
+          p.z = z * scaleZ + ripple;
+        } else {
+          var breath = Math.sin(time * 0.35 + p.x * 4) * 0.004;
+          p.z = (p.az != null ? p.az : p.z) + breath;
+        }
       }
     }
   }
@@ -883,7 +930,7 @@
         if (hoverElapsed >= HOVER_TO_MORPH_MS) transitionToShape();
       } else hoverElapsed = 0;
     } else if (state === STATE.STRUCTURED || state === STATE.SETTLING) {
-      if (currentShape !== 'globe' && currentShape !== 'jet') evolveAnchors();
+      if (currentShape !== 'globe' && currentShape !== 'torus' && currentShape !== 'turbine' && currentShape !== 'geometry') evolveAnchors();
       syncAnchorsToPoints();
       applyStructureMotion();
       applyAmbientDrift();
@@ -943,12 +990,23 @@
               p.globeLonIdx = tg.lonIdx;
               p.globeIsEquator = tg.isEquator;
               p.globeIsInterior = tg.isInterior;
-            } else if (currentShape === 'jet' && tg.jetSeq != null) {
-              var seqStart = tg.jetSeq;
+            } else if (currentShape === 'torus' && tg.torusSeq != null) {
+              var seqStart = tg.torusSeq;
               tAnim = easeInOutCubic(Math.max(0, Math.min(1, (t - seqStart * 0.6) / (1 - seqStart * 0.6 + 0.01))));
-              p.jetPart = tg.jetPart;
-              p.jetSeq = tg.jetSeq;
-              p.jetContourIdx = tg.jetContourIdx;
+              p.torusPart = tg.torusPart;
+              p.torusSeq = tg.torusSeq;
+              p.torusContourIdx = tg.torusContourIdx;
+            } else if (currentShape === 'turbine' && tg.turbineContourIdx != null) {
+              tAnim = p.morphRole === 'contour'
+                ? easeInOutCubic(Math.min(1, t * 1.6))
+                : easeInOutCubic(Math.max(0, (t - 0.15) / 0.85));
+              p.turbineContourIdx = tg.turbineContourIdx;
+            } else if (currentShape === 'geometry' && (tg.geometryContourIdx != null || tg.geometryParamU != null)) {
+              tAnim = p.morphRole === 'contour'
+                ? easeInOutCubic(Math.min(1, t * 1.6))
+                : easeInOutCubic(Math.max(0, (t - 0.15) / 0.85));
+              if (tg.geometryContourIdx != null) p.geometryContourIdx = tg.geometryContourIdx;
+              if (tg.geometryParamU != null) { p.geometryParamU = tg.geometryParamU; p.geometryParamV = tg.geometryParamV; }
             } else {
               tAnim = p.morphRole === 'contour'
                 ? easeInOutCubic(Math.min(1, t * 1.6))
